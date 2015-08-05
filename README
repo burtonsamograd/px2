@@ -1,7 +1,7 @@
-PX - a backbone replacement
+PX2 - a backbone replacement
 --------------------------------
 
-PX is a backbone replacement with a more consistent design:
+PX2 is a backbone replacement with a more consistent design:
 
    - objects are both objects and containers, of type Class
 
@@ -66,7 +66,7 @@ Class methods:
 
 Example of defining and using a Class as an object and a container:
 
-var Class = require("px").Class;
+var Class = require("px2").Class;
 
 // Declare object class data
 var Point = {
@@ -130,7 +130,7 @@ Class(es) give.
 View example
 ------------
 
-var View = require("px").View;
+var View = require("px2").View;
 
 var PointsView = {
     // optional, but handy for debugging and is the default class if
@@ -177,7 +177,7 @@ $('document').ready(function () {
 WTF is this written in?
 -----------------------
 
-PX is written in Parenscript: https://github.com/vsedach/Parenscript
+PX2 is written in Parenscript: https://github.com/vsedach/Parenscript
 To build from source you need use ps2js: https://github.com/burtonsamograd/ps2js
 
 --
