@@ -1,0 +1,39 @@
+{
+  "name": "px",
+  "version": "1.0.0",
+  "description": "PX is a backbone replacement.",
+  "main": "px.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/burtonsamograd/px.git"
+  },
+  "keywords": [
+    "framework",
+    "backbone",
+    "object",
+    "event",
+    "view",
+    "model",
+    "controller"
+  ],
+  "author": "Burton Samograd <burton.samograd@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/burtonsamograd/px/issues"
+  },
+  "homepage": "https://github.com/burtonsamograd/px",
+  "devDependencies": {
+    "blanket": "^1.1.7",
+    "chai": "^3.2.0",
+    "jquery": "^2.1.4",
+    "jsdom": "^6.0.0",
+    "mocha-text-cov": "^0.1.0",
+    "sinon": "^1.15.4"
+  }
+}

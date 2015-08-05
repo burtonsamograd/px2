@@ -1,0 +1,195 @@
+;; -*- mode: lisp -*-
+
+(load "macros.ps")
+
+(defclass *Event () (target value)
+  (setf (@ this target) target
+        (@ this value) value))
+
+(defclass *Class () (options)
+  (setf (@ this _parents) (array)
+        (@ this _props) (create)
+        (@ this _actions) (create)
+        (@ this _storage) (array))
+
+  (if (and options (@ options defaults))
+      (for-in (def (@ options defaults))
+        ((@ this create) def (getprop options 'defaults def))))
+
+  (for-in (k options)
+     (setf (getprop this k) (getprop options k)))
+
+  (if (@ this init)
+      (let ((args ((@ *Array prototype slice call) arguments 1)))
+        ((@ this init apply) this args))))
+
+(defun *Classp (value) ;; TODO: this could be better written/more accurate
+  (and (= (typeof value) :object) ((@ *Array is-array) (@ value _parents))))
+
+(defun add-parent (child parent name)
+  (when (*Classp child)
+    ((@ child _parents push) parent)
+    ((@ parent once) (+ :change ":" name) (lambda (e)
+                                            ((@ child _parents remove) (@ e target))))))
+
+(defmethod *Class get (name)
+  (getprop this '_props name))
+
+(defun getset (name)
+  (if (= (@ arguments length) 1)
+      ((@ this get) name)
+      ((@ this set) name (aref arguments 1))))
+      
+(defmethod *Class create (name value)
+  ;; TODO: debug only
+  (if ((@ this _props has-own-property) name)
+      (throw (new (*Error (+ "Attempt to create property " name " that already exists.")))))
+
+  (setf (getprop this '_props name) value
+        (getprop this name) ((@ getset bind) this name))
+  
+  (add-parent value this name)
+  (trigger this
+           :create value
+           (+ :create ":" name) value)
+  value)
+              
+(defmethod *Class set (name value)
+  ;; TODO: debug only
+  (if (not ((@ this _props has-own-property) name))
+      (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
+
+  (trigger this 
+           :change value
+           (+ :change ":" name) value)
+  (add-parent value this name)
+  (setf (getprop this '_props name) value))
+
+(defmethod *Class destroy (name)
+  (delete (getprop this '_props name))
+  (trigger this :destroy (getprop this '_props name)))
+
+(defmethod *Class trigger (message value target)
+  (let ((actions (getprop this '_actions message)))
+    (if actions
+        (let ((event (new (*Event (or target this) value)))
+              (to-remove (array)))
+          (dolist (action actions)
+            ((@ action fun call) (@ action self) event)
+            (if (@ action once)
+                ((@ to-remove push) action))
+            (dolist (action to-remove)
+              ((@ to-remove remove) action)))))
+    (dolist (parent (@ this _parents))
+      (unless (= parent target) ;; don't blow the stack when x contains y and y contains x
+        ((@ this trigger call) parent message value (or target this))))))
+
+;; TODO: refactor on and once
+(defmethod *Class on (message fun self)
+  (let ((action (create :message message
+                        :fun fun
+                        :self (or self this))))
+    (if (not (getprop this '_actions message))
+        (setf (getprop this '_actions message) (array action))
+        ((getprop this '_actions message 'push) action))
+    action))
+
+(defmethod *Class once (message fun self)
+  (let ((action (create :message message
+                        :fun fun
+                        :self (or self this)
+                        :once t)))
+    (if (not (getprop this '_actions message))
+        (setf (getprop this '_actions message) (array action))
+        ((getprop this '_actions message 'push) action))
+    action))
+
+
+(defmethod *Class push (obj)
+  (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
+      (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
+  (when (*Classp obj)
+    ((@ obj _parents push) this))
+  ((@ this _storage push) obj)
+  (setf (@ this length) (@ this _storage length))
+  (trigger this
+           :add obj
+           :change obj)
+  obj)
+
+(defmethod *Class add (obj)
+  (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
+      (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
+  (when (not ((@ this find) obj))
+    ((@ this push) obj))
+  obj)
+
+(defmethod *Class remove (obj)
+  (let ((retval ((@ this _storage remove) obj)))
+    (when retval
+      (trigger this
+               :remove obj
+               :change obj)
+      (decf (@ this length)))
+    retval))
+
+(defmethod *Class clear ()
+  (setf (@ this _storage) (array)
+        (@ this length) 0)
+  (trigger this :change))
+
+(defmethod *Class at (index)
+  (aref (@ this _storage) index))
+
+(defmethod *Class each (fun self)
+  (let ((self (or self this)))
+    (dolist (item (@ this _storage))
+      ((@ fun call) self item))))
+
+(defmethod *Class map (fun self)
+  (let ((result '())
+        (self (or self this)))
+    (dolist (item (@ this _storage))
+      ((@ result push) ((@ fun call) self item)))
+    result))
+
+(defmethod *Class filter (fun self)
+  (let ((result '())
+        (self (or self this)))
+    (dolist (item (@ this _storage))
+      (when ((@ fun call) self item)
+        ((@ result push) item)))
+    result))
+
+(defmethod *Class find (fun-or-obj)
+  (if (= (typeof fun-or-obj) :function)
+      (dolist (item (@ this _storage))
+        (when (fun-or-obj item)
+          (return-from find item)))
+      (dolist (item (@ this _storage))
+          (when (= fun-or-obj item)
+            (return-from find item)))))
+
+(defclass *View (*Class) (options model)
+  (setf (@ this model) model
+        (@ this $el) ($ :<div>))
+  (when options
+    (when (@ options tag-name)
+      (setf (@ this $el) ($ (+ "<" (@ options tag-name) ">"))))
+
+    (when (@ options style)
+      ((@ this $el css) (@ options style)))
+
+    (when (@ options model)
+      (setf (@ this model) (@ options model))
+      (delete (@ options model)))
+
+    ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
+
+    (when (@ options events)
+      (for-in (event (@ options events))
+              ((@ this $el on) event ((getprop options 'events event 'bind) this))))
+    ))
+
+(export *Class *View)
+

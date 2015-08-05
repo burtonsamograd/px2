@@ -1,0 +1,25 @@
+;; -*- mode: lisp -*-
+
+(defmacro defsuite (string &body body)
+  `(describe  ,string (lambda () ,@body)))
+(defmacro xdefsuite (string &body body)
+  `(xdescribe  ,string (lambda () ,@body)))
+(defmacro deftest (string &body body)
+  `(it ,string (lambda (done) ,@body)))
+(defmacro xdeftest (string &body body)
+  `(xit ,string (lambda (done) ,@body)))
+
+(defmacro assert (cond message)
+  `(if (not ,cond) 
+       (throw (new (*Error ,message)))))
+
+(defmacro assert-equals (a b message)
+  `(if (not (= ,a ,b))
+       (throw (new (*Error (+ "Expected " ,a " to equal " ,b ": "  ,message))))))
+
+(defmacro code-coverage (regex)
+  `((require :blanket)
+    (create
+     :pattern (lambda (filename)
+                (and (not ((@ (regex "/node_modules/") test) filename))
+                     ((@ (regex ,regex) test) filename))))))

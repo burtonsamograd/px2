@@ -1,0 +1,80 @@
+;; -*- mode: lisp -*-
+(load "../test-macros.ps")
+(code-coverage "/px\\//")
+
+;; Magic to use jQuery in node
+(setf $ ((require "jquery") (chain ((@ (require "jsdom") jsdom)) default-view)))
+
+(defvar expect (@ (require "chai") expect))
+(defvar sinon (require "sinon"))
+(defvar *Class (@ (require "../px.js") *Class))
+(defvar *View (@ (require "../px.js") *View))
+
+(defsuite "Class"
+    ((require "./methods.js") *Class)
+    ((require "./constructor.js") *Class)
+    ((require "./members.js") *Class)
+    ((require "./defaults.js") *Class)
+    ((require "./collections.js") *Class)
+    ((require "./events.js") *Class)
+    ((require "./parents.js") *Class)
+    ((require "./bubbling.js") *Class)
+    ((require "./iterators.js") *Class))
+  
+(defsuite "View"
+    ((require "./methods.js") *View)
+    ((require "./constructor.js") *View)
+    ((require "./members.js") *View)
+    ((require "./defaults.js") *View)
+    ((require "./collections.js") *View)
+    ((require "./events.js") *View)
+    ((require "./parents.js") *View)
+    ((require "./bubbling.js") *View)
+    ((require "./iterators.js") *View)
+  
+    (defsuite "view"
+        (deftest "should have a $el member"
+            (let ((view (new (*View))))
+              (assert (@ view $el) "$el memeber is not present in view")
+              (done)))
+
+        (deftest "should have a $el member of type div"
+            (let ((view (new (*View))))
+              (assert-equals  ((@ view $el prop) "tagName") "DIV"
+                              "$el memeber is not a DIV")
+              (done)))
+
+        (deftest "should have a $el member of type span"
+            (let ((view (new (*View (create "tagName" "SPAN")))))
+              (assert-equals  ((@ view $el prop) "tagName") "SPAN"
+                              "$el memeber is not a SPAN")
+              (done)))
+        
+        (deftest "should have a $el member of class type 'testing'"
+            (let ((view (new (*View (create "className" "testing")))))
+              (assert-equals  ((@ view $el prop) "class") "testing"
+                              "$el class name is not 'testing'")
+              (done)))
+
+        (deftest "should set the model member"
+            (let ((view (new (*View (create "model" 1)))))
+              (assert-equals  (@ view model) 1
+                              "$el model is not set to 1")
+              (done)))
+
+        (deftest "should set the css/style member"
+            (let ((view (new (*View (create style (create "font-weight" "bold"))))))
+              (assert-equals  ((@ view $el css) "font-weight") "bold"
+                              "$el css 'font-weight' is not set to 'bold")
+              (done)))
+
+        (deftest "should set events"
+            (let* ((handler ((@ sinon spy) (lambda ())))
+                   (view (new (*View (create events (create "click" handler))))))
+              ((@ view $el click))
+              (assert (@ handler called-once) "event handler was not called.")
+              (done)))
+      ))
+
+
+
