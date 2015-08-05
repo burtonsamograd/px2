@@ -2,3 +2,4 @@ node_modules
 *~
 test/test
 test/coverage.html
+test/coverage.txt

@@ -1,8 +1,8 @@
 /* (LOAD ../test-macros.ps) */
 
-/* (CODE-COVERAGE /px\//) */
+/* (CODE-COVERAGE /px2\//) */
 require('blanket')({ 'pattern' : function (filename) {
-    return !/node_modules/.test(filename) && /px\//.test(filename);
+    return !/node_modules/.test(filename) && /px2\//.test(filename);
 } });
 /* (SETF $ ((REQUIRE jquery) (CHAIN ((@ (REQUIRE jsdom) JSDOM)) DEFAULT-VIEW))) */
 $ = require('jquery')(require('jsdom').jsdom().defaultView);
@@ -10,10 +10,10 @@ $ = require('jquery')(require('jsdom').jsdom().defaultView);
 var expect = require('chai').expect;
 /* (DEFVAR SINON (REQUIRE sinon)) */
 var sinon = require('sinon');
-/* (DEFVAR *CLASS (@ (REQUIRE ../px.js) *CLASS)) */
-var Class = require('../px.js').Class;
-/* (DEFVAR *VIEW (@ (REQUIRE ../px.js) *VIEW)) */
-var View = require('../px.js').View;
+/* (DEFVAR *CLASS (@ (REQUIRE ../px2.js) *CLASS)) */
+var Class = require('../px2.js').Class;
+/* (DEFVAR *VIEW (@ (REQUIRE ../px2.js) *VIEW)) */
+var View = require('../px2.js').View;
 /* (DEFSUITE Class ((REQUIRE ./methods.js) *CLASS)
     ((REQUIRE ./constructor.js) *CLASS) ((REQUIRE ./members.js) *CLASS)
     ((REQUIRE ./defaults.js) *CLASS) ((REQUIRE ./collections.js) *CLASS)

@@ -1,6 +1,6 @@
 include Makefile.inc
-all: px.js
+all: px2.js
 	$(MAKE) -C test
 
-px.js: px.ps macros.ps
+px2.js: px2.ps macros.ps
 

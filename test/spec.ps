@@ -1,14 +1,14 @@
 ;; -*- mode: lisp -*-
 (load "../test-macros.ps")
-(code-coverage "/px\\//")
+(code-coverage "/px2\\//")
 
 ;; Magic to use jQuery in node
 (setf $ ((require "jquery") (chain ((@ (require "jsdom") jsdom)) default-view)))
 
 (defvar expect (@ (require "chai") expect))
 (defvar sinon (require "sinon"))
-(defvar *Class (@ (require "../px.js") *Class))
-(defvar *View (@ (require "../px.js") *View))
+(defvar *Class (@ (require "../px2.js") *Class))
+(defvar *View (@ (require "../px2.js") *View))
 
 (defsuite "Class"
     ((require "./methods.js") *Class)

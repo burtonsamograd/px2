@@ -2,7 +2,7 @@
   "name": "px",
   "version": "1.0.0",
   "description": "PX is a backbone replacement.",
-  "main": "px.js",
+  "main": "px2.js",
   "directories": {
     "test": "test"
   },
