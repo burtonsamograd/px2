@@ -76,6 +76,44 @@ module.exports = function (cls) {
             x.add(y);
             y.add(x);
         });
-
+        it('should not call a handler when silent is given to create', function () {
+            obj.on('create', handler);
+            obj.create('x', 1, true);
+            obj.create('y', 2, true);
+            expect(handler.called).to.be.false;
+        });
+        it('should not call a handler when silent is given to named get/set', function () {
+            obj.on('change', handler);
+            obj.a(1, true);
+            obj.b(2, true);
+            expect(handler.called).to.be.false;
+        });
+        it('should not call a handler when silent is given to add', function () {
+            obj.on('change', handler);
+            obj.add(1, true);
+            obj.add(2, true);
+            expect(handler.called).to.be.false;
+        });
+        it('should not call a handler when silent is given to remove', function () {
+            obj.on('change', handler);
+            obj.add(1);
+            obj.add(2);
+            obj.remove(2, true);
+            obj.remove(1, true);
+            expect(handler.calledTwice).to.be.true;
+        });
+        it('should not call a handler when silent is given to push', function () {
+            obj.on('change', handler);
+            obj.push(1, true);
+            obj.push(2, true);
+            expect(handler.called).to.be.false;
+        });
+        it('should not call a handler when silent is given to clear', function () {
+            obj.on('change', handler);
+            obj.push(1);
+            obj.push(2);
+            obj.clear(true);
+            expect(handler.calledTwice).to.be.true;
+        });
     });
 }

@@ -29,7 +29,6 @@ Class methods
        of 'value'. Also creates named getters/setters, this.name() and
        this.name(value). Sends 'create' and 'create:$name' messages
        with value as event.value.
-       // TODO: silent arg
 
      this.set(name, value)
 
@@ -38,7 +37,6 @@ Class methods
        the original value and the event.value (passed as the first
        part of 'change' trigger handler) is the value that this.name()
        will be set to after the trigger handler returns.
-       // TODO: silent arg
 
      this.get(name)
 
@@ -49,7 +47,6 @@ Class methods
        Add value to the collection if it is not already in the
        collection and sends "add" and "change" messages, with
        event.target being the value.
-       // TODO: silent arg
        
      this.push(value)
 
@@ -57,19 +54,16 @@ Class methods
        "change" messages, with event.target being the value. Much
        faster than add, since it doesn't have to scan the entire
        storage looking for a duplicate.
-       // TODO: silent arg
        
      this.remove(value)
 
        Remove value from the collection if it has been added to it
        using add/push and sends "remove" and "change" messages if it
        was removed.
-       // TODO: silent arg
 
      this.at(index)
 
        Return an element in the collection located at index.
-       // TODO: range check and throw error?
        
      this.length:
 
@@ -79,7 +73,6 @@ Class methods
 
        Remove all items from the collection and sets length to 0;
        sends "change" message.
-       // TODO: silent arg
 
      this.on(message, function (event) { ... }, self)
 

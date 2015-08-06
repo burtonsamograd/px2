@@ -6,23 +6,23 @@ module.exports = function (cls) {
         it('should allow adding to the collection', function () {
             var c = new cls();
             var o = new cls();
-            expect(c.add(o)).to.not.throw;
+            expect(c.add.bind(c, o)).to.not.throw(Error);
             expect(c.length).to.equal(1);
             expect(c.at(0)).to.equal(o);
         });
         it('should not allow adding duplicates to the collection', function () {
             var c = new cls();
             var o = new cls();
-            expect(c.add(o)).to.not.throw;
-            expect(c.add(o)).to.not.throw;
+            expect(c.add.bind(c, o)).to.not.throw(Error);
+            expect(c.add.bind(c, o)).to.not.throw(Error);
             expect(c.length).to.equal(1);
             expect(c.at(0)).to.equal(o);
         });
         it('should allow pushing duplicates to the collection', function () {
             var c = new cls();
             var o = new cls();
-            expect(c.push(o)).to.not.throw;
-            expect(c.push(o)).to.not.throw;
+            expect(c.push.bind(c, o)).to.not.throw(Error);
+            expect(c.push.bind(c, o)).to.not.throw(Error);
             expect(c.length).to.equal(2);
             expect(c.at(0)).to.equal(o);
             expect(c.at(1)).to.equal(o);
@@ -74,6 +74,12 @@ module.exports = function (cls) {
             c.clear();
             expect(c._storage).to.eql([]);
             expect(c.length).to.equal(0);
+        });
+        it('should throw an error when referencing outside of the collection', function () {
+            var c = new cls();
+            var o = new cls();
+            c.add(o);
+            expect(c.at.bind(c, 1)).to.throw(Error);
         });
     });
 }

@@ -35,12 +35,12 @@
 (defmethod *Class get (name)
   (getprop this '_props name))
 
-(defun getset (name)
+(defun getset (name value silent)
   (if (= (@ arguments length) 1)
       ((@ this get) name)
-      ((@ this set) name (aref arguments 1))))
+      ((@ this set) name value silent)))
       
-(defmethod *Class create (name value)
+(defmethod *Class create (name value silent)
   ;; TODO: debug only
   (if ((@ this _props has-own-property) name)
       (throw (new (*Error (+ "Attempt to create property " name " that already exists.")))))
@@ -49,19 +49,21 @@
         (getprop this name) ((@ getset bind) this name))
   
   (add-parent value this name)
-  (trigger this
-           :create value
-           (+ :create ":" name) value)
+  (unless silent
+    (trigger this
+             :create value
+             (+ :create ":" name) value))
   value)
               
-(defmethod *Class set (name value)
+(defmethod *Class set (name value silent)
   ;; TODO: debug only
   (if (not ((@ this _props has-own-property) name))
       (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
 
-  (trigger this 
-           :change value
-           (+ :change ":" name) value)
+  (unless silent
+    (trigger this 
+             :change value
+             (+ :change ":" name) value))
   (add-parent value this name)
   (setf (getprop this '_props name) value))
 
@@ -77,12 +79,12 @@
           (dolist (action actions)
             ((@ action fun call) (@ action self) event)
             (if (@ action once)
-                ((@ to-remove push) action))
-            (dolist (action to-remove)
-              ((@ to-remove remove) action)))))
+                ((@ to-remove push) action)))
+          (dolist (action to-remove)
+            ((@ to-remove remove) action)))
     (dolist (parent (@ this _parents))
       (unless (= parent target) ;; don't blow the stack when x contains y and y contains x
-        ((@ this trigger call) parent message value (or target this))))))
+        ((@ this trigger call) parent message value (or target this)))))))
 
 ;; TODO: refactor on and once
 (defmethod *Class on (message fun self)
@@ -105,40 +107,47 @@
     action))
 
 
-(defmethod *Class push (obj)
+(defmethod *Class push (obj silent)
   (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
       (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
-  (when (*Classp obj)
+  (when (*Classp obj silent)
     ((@ obj _parents push) this))
   ((@ this _storage push) obj)
   (setf (@ this length) (@ this _storage length))
-  (trigger this
-           :add obj
-           :change obj)
+  (unless silent
+    (trigger this
+             :add obj
+             :change obj))
   obj)
 
-(defmethod *Class add (obj)
+(defmethod *Class add (obj silent)
   (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
       (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
   (when (not ((@ this find) obj))
-    ((@ this push) obj))
+    ((@ this push) obj silent))
   obj)
 
-(defmethod *Class remove (obj)
+(defmethod *Class remove (obj silent)
   (let ((retval ((@ this _storage remove) obj)))
     (when retval
-      (trigger this
-               :remove obj
-               :change obj)
+      (unless silent
+        (trigger this
+                 :remove obj
+                 :change obj))
       (decf (@ this length)))
     retval))
 
-(defmethod *Class clear ()
+(defmethod *Class clear (silent)
   (setf (@ this _storage) (array)
         (@ this length) 0)
-  (trigger this :change))
+  (unless silent
+    (trigger this "change")))
 
 (defmethod *Class at (index)
+  (when (>= index (@ this length))
+    (throw (new (Error (+ "attempt to index (" index
+                          ") out of range of object ("
+                          (@ this length) ")")))))
   (aref (@ this _storage) index))
 
 (defmethod *Class each (fun self)

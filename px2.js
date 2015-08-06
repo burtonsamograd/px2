@@ -1,4 +1,5 @@
-/* (LOAD macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -73,14 +74,14 @@ function addParent(child, parent, name) {
 Class.prototype.get = function (name) {
     return this._props[name];
 };
-/* (DEFUN GETSET (NAME)
+/* (DEFUN GETSET (NAME VALUE SILENT)
      (IF (= (@ ARGUMENTS LENGTH) 1)
          ((@ THIS GET) NAME)
-         ((@ THIS SET) NAME (AREF ARGUMENTS 1)))) */
-function getset(name) {
-    return arguments.length === 1 ? this.get(name) : this.set(name, arguments[1]);
+         ((@ THIS SET) NAME VALUE SILENT))) */
+function getset(name, value, silent) {
+    return arguments.length === 1 ? this.get(name) : this.set(name, value, silent);
 };
-/* (DEFMETHOD *CLASS CREATE (NAME VALUE)
+/* (DEFMETHOD *CLASS CREATE (NAME VALUE SILENT)
      (IF ((@ THIS _PROPS HAS-OWN-PROPERTY) NAME)
          (THROW
              (NEW
@@ -89,34 +90,38 @@ function getset(name) {
      (SETF (GETPROP THIS '_PROPS NAME) VALUE
            (GETPROP THIS NAME) ((@ GETSET BIND) THIS NAME))
      (ADD-PARENT VALUE THIS NAME)
-     (TRIGGER THIS CREATE VALUE (+ CREATE : NAME) VALUE)
+     (UNLESS SILENT (TRIGGER THIS CREATE VALUE (+ CREATE : NAME) VALUE))
      VALUE) */
-Class.prototype.create = function (name, value) {
+Class.prototype.create = function (name, value, silent) {
     if (this._props.hasOwnProperty(name)) {
         throw new Error('Attempt to create property ' + name + ' that already exists.');
     };
     this._props[name] = value;
     this[name] = getset.bind(this, name);
     addParent(value, this, name);
-    this.trigger('create', value);
-    this.trigger('create' + ':' + name, value);
+    if (!silent) {
+        this.trigger('create', value);
+        this.trigger('create' + ':' + name, value);
+    };
     return value;
 };
-/* (DEFMETHOD *CLASS SET (NAME VALUE)
+/* (DEFMETHOD *CLASS SET (NAME VALUE SILENT)
      (IF (NOT ((@ THIS _PROPS HAS-OWN-PROPERTY) NAME))
          (THROW
              (NEW
               (*ERROR
                (+ Attempt to set a property  NAME  that does not exist.)))))
-     (TRIGGER THIS CHANGE VALUE (+ CHANGE : NAME) VALUE)
+     (UNLESS SILENT (TRIGGER THIS CHANGE VALUE (+ CHANGE : NAME) VALUE))
      (ADD-PARENT VALUE THIS NAME)
      (SETF (GETPROP THIS '_PROPS NAME) VALUE)) */
-Class.prototype.set = function (name, value) {
+Class.prototype.set = function (name, value, silent) {
     if (!this._props.hasOwnProperty(name)) {
         throw new Error('Attempt to set a property ' + name + ' that does not exist.');
     };
-    this.trigger('change', value);
-    this.trigger('change' + ':' + name, value);
+    if (!silent) {
+        this.trigger('change', value);
+        this.trigger('change' + ':' + name, value);
+    };
     addParent(value, this, name);
     return this._props[name] = value;
 };
@@ -135,11 +140,12 @@ Class.prototype.destroy = function (name) {
              (DOLIST (ACTION ACTIONS)
                ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT)
                (IF (@ ACTION ONCE)
-                   ((@ TO-REMOVE PUSH) ACTION))
-               (DOLIST (ACTION TO-REMOVE) ((@ TO-REMOVE REMOVE) ACTION)))))
-       (DOLIST (PARENT (@ THIS _PARENTS))
-         (UNLESS (= PARENT TARGET)
-           ((@ THIS TRIGGER CALL) PARENT MESSAGE VALUE (OR TARGET THIS)))))) */
+                   ((@ TO-REMOVE PUSH) ACTION)))
+             (DOLIST (ACTION TO-REMOVE) ((@ TO-REMOVE REMOVE) ACTION)))
+           (DOLIST (PARENT (@ THIS _PARENTS))
+             (UNLESS (= PARENT TARGET)
+               ((@ THIS TRIGGER CALL) PARENT MESSAGE VALUE
+                (OR TARGET THIS))))))) */
 Class.prototype.trigger = function (message, value, target) {
     var actions = this._actions[message];
     if (actions) {
@@ -151,16 +157,17 @@ Class.prototype.trigger = function (message, value, target) {
             if (action.once) {
                 toRemove.push(action);
             };
-            for (var action = null, _js_idx3 = 0; _js_idx3 < toRemove.length; _js_idx3 += 1) {
-                action = toRemove[_js_idx3];
-                toRemove.remove(action);
-            };
         };
-    };
-    for (var parent = null, _js_arrvar4 = this._parents, _js_idx3 = 0; _js_idx3 < _js_arrvar4.length; _js_idx3 += 1) {
-        parent = _js_arrvar4[_js_idx3];
-        if (parent !== target) {
-            this.trigger.call(parent, message, value, target || this);
+        for (var action = null, _js_idx3 = 0; _js_idx3 < toRemove.length; _js_idx3 += 1) {
+            action = toRemove[_js_idx3];
+            toRemove.remove(action);
+        };
+    } else {
+        for (var parent = null, _js_arrvar5 = this._parents, _js_idx4 = 0; _js_idx4 < _js_arrvar5.length; _js_idx4 += 1) {
+            parent = _js_arrvar5[_js_idx4];
+            if (parent !== target) {
+                this.trigger.call(parent, message, value, target || this);
+            };
         };
     };
 };
@@ -201,85 +208,99 @@ Class.prototype.once = function (message, fun, self) {
     };
     return action;
 };
-/* (DEFMETHOD *CLASS PUSH (OBJ)
+/* (DEFMETHOD *CLASS PUSH (OBJ SILENT)
      (IF (AND (@ THIS CONTAINS) (NOT (= (@ OBJ TYPE) (@ THIS CONTAINS))))
          (THROW
              (NEW
               (*ERROR
                (+ Attempt to push  (@ OBJ TYPE) into container for
                   (@ THIS CONTAINS))))))
-     (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
+     (WHEN (*CLASSP OBJ SILENT) ((@ OBJ _PARENTS PUSH) THIS))
      ((@ THIS _STORAGE PUSH) OBJ)
      (SETF (@ THIS LENGTH) (@ THIS _STORAGE LENGTH))
-     (TRIGGER THIS ADD OBJ CHANGE OBJ)
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
      OBJ) */
-Class.prototype.push = function (obj) {
+Class.prototype.push = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
     };
-    if (Classp(obj)) {
+    if (Classp(obj, silent)) {
         obj._parents.push(this);
     };
     this._storage.push(obj);
     this.length = this._storage.length;
-    this.trigger('add', obj);
-    this.trigger('change', obj);
+    if (!silent) {
+        this.trigger('add', obj);
+        this.trigger('change', obj);
+    };
     return obj;
 };
-/* (DEFMETHOD *CLASS ADD (OBJ)
+/* (DEFMETHOD *CLASS ADD (OBJ SILENT)
      (IF (AND (@ THIS CONTAINS) (NOT (= (@ OBJ TYPE) (@ THIS CONTAINS))))
          (THROW
              (NEW
               (*ERROR
                (+ Attempt to push  (@ OBJ TYPE) into container for
                   (@ THIS CONTAINS))))))
-     (WHEN (NOT ((@ THIS FIND) OBJ)) ((@ THIS PUSH) OBJ))
+     (WHEN (NOT ((@ THIS FIND) OBJ)) ((@ THIS PUSH) OBJ SILENT))
      OBJ) */
-Class.prototype.add = function (obj) {
+Class.prototype.add = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
     };
     if (!this.find(obj)) {
-        this.push(obj);
+        this.push(obj, silent);
     };
     return obj;
 };
-/* (DEFMETHOD *CLASS REMOVE (OBJ)
+/* (DEFMETHOD *CLASS REMOVE (OBJ SILENT)
      (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
        (WHEN RETVAL
-         (TRIGGER THIS REMOVE OBJ CHANGE OBJ)
+         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ CHANGE OBJ))
          (DECF (@ THIS LENGTH)))
        RETVAL)) */
-Class.prototype.remove = function (obj) {
+Class.prototype.remove = function (obj, silent) {
     var retval = this._storage.remove(obj);
     if (retval) {
-        this.trigger('remove', obj);
-        this.trigger('change', obj);
+        if (!silent) {
+            this.trigger('remove', obj);
+            this.trigger('change', obj);
+        };
         --this.length;
     };
     return retval;
 };
-/* (DEFMETHOD *CLASS CLEAR ()
+/* (DEFMETHOD *CLASS CLEAR (SILENT)
      (SETF (@ THIS _STORAGE) (ARRAY)
            (@ THIS LENGTH) 0)
-     (TRIGGER THIS CHANGE)) */
-Class.prototype.clear = function () {
+     (UNLESS SILENT (TRIGGER THIS change))) */
+Class.prototype.clear = function (silent) {
     this._storage = [];
     this.length = 0;
-    return this.trigger('change', null);
+    return !silent ? this.trigger('change', null) : null;
 };
-/* (DEFMETHOD *CLASS AT (INDEX) (AREF (@ THIS _STORAGE) INDEX)) */
+/* (DEFMETHOD *CLASS AT (INDEX)
+     (WHEN (>= INDEX (@ THIS LENGTH))
+       (THROW
+           (NEW
+            (ERROR
+             (+ attempt to index ( INDEX ) out of range of object (
+                (@ THIS LENGTH) ))))))
+     (AREF (@ THIS _STORAGE) INDEX)) */
 Class.prototype.at = function (index) {
+    if (index >= this.length) {
+        throw new error('attempt to index (' + index + ') out of range of object (' + this.length + ')');
+    };
     return this._storage[index];
 };
 /* (DEFMETHOD *CLASS EACH (FUN SELF)
      (LET ((SELF (OR SELF THIS)))
        (DOLIST (ITEM (@ THIS _STORAGE)) ((@ FUN CALL) SELF ITEM)))) */
 Class.prototype.each = function (fun, self) {
-    var self5 = self || this;
-    for (var item = null, _js_arrvar7 = this._storage, _js_idx6 = 0; _js_idx6 < _js_arrvar7.length; _js_idx6 += 1) {
-        item = _js_arrvar7[_js_idx6];
-        fun.call(self5, item);
+    var self6 = self || this;
+    for (var item = null, _js_arrvar8 = this._storage, _js_idx7 = 0; _js_idx7 < _js_arrvar8.length; _js_idx7 += 1) {
+        item = _js_arrvar8[_js_idx7];
+        fun.call(self6, item);
     };
 };
 /* (DEFMETHOD *CLASS MAP (FUN SELF)
@@ -289,10 +310,10 @@ Class.prototype.each = function (fun, self) {
        RESULT)) */
 Class.prototype.map = function (fun, self) {
     var result = [];
-    var self8 = self || this;
-    for (var item = null, _js_arrvar10 = this._storage, _js_idx9 = 0; _js_idx9 < _js_arrvar10.length; _js_idx9 += 1) {
-        item = _js_arrvar10[_js_idx9];
-        result.push(fun.call(self8, item));
+    var self9 = self || this;
+    for (var item = null, _js_arrvar11 = this._storage, _js_idx10 = 0; _js_idx10 < _js_arrvar11.length; _js_idx10 += 1) {
+        item = _js_arrvar11[_js_idx10];
+        result.push(fun.call(self9, item));
     };
     return result;
 };
@@ -303,10 +324,10 @@ Class.prototype.map = function (fun, self) {
        RESULT)) */
 Class.prototype.filter = function (fun, self) {
     var result = [];
-    var self11 = self || this;
-    for (var item = null, _js_arrvar13 = this._storage, _js_idx12 = 0; _js_idx12 < _js_arrvar13.length; _js_idx12 += 1) {
-        item = _js_arrvar13[_js_idx12];
-        if (fun.call(self11, item)) {
+    var self12 = self || this;
+    for (var item = null, _js_arrvar14 = this._storage, _js_idx13 = 0; _js_idx13 < _js_arrvar14.length; _js_idx13 += 1) {
+        item = _js_arrvar14[_js_idx13];
+        if (fun.call(self12, item)) {
             result.push(item);
         };
     };
@@ -320,15 +341,15 @@ Class.prototype.filter = function (fun, self) {
            (WHEN (= FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM))))) */
 Class.prototype.find = function (funOrObj) {
     if (typeof funOrObj === 'function') {
-        for (var item = null, _js_arrvar17 = this._storage, _js_idx16 = 0; _js_idx16 < _js_arrvar17.length; _js_idx16 += 1) {
-            item = _js_arrvar17[_js_idx16];
+        for (var item = null, _js_arrvar18 = this._storage, _js_idx17 = 0; _js_idx17 < _js_arrvar18.length; _js_idx17 += 1) {
+            item = _js_arrvar18[_js_idx17];
             if (funOrObj(item)) {
                 return item;
             };
         };
     } else {
-        for (var item = null, _js_arrvar19 = this._storage, _js_idx18 = 0; _js_idx18 < _js_arrvar19.length; _js_idx18 += 1) {
-            item = _js_arrvar19[_js_idx18];
+        for (var item = null, _js_arrvar20 = this._storage, _js_idx19 = 0; _js_idx19 < _js_arrvar20.length; _js_idx19 += 1) {
+            item = _js_arrvar20[_js_idx19];
             if (funOrObj === item) {
                 return item;
             };
