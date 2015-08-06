@@ -89,6 +89,11 @@ Class methods
        trigger, and event.target which will be the object that
        triggered the message, in most cases 'this'.
 
+     this.once(message, function (event) { ... }, self)
+
+       Like this.on, but the handler is only called once, after which
+       it is removed from the handler action table.
+
      this.trigger(message, value)
 
        Send the message to this, and then all containing parents,
