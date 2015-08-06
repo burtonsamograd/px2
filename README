@@ -113,8 +113,8 @@ Class methods
 
        Find a specific object in the collection.  If the argument is
        an object, === is used, if a function it is called with each
-       element of the collection until it returns true, after which
-       that object is returned. Returns the object, if it is found.
+       element of the collection until it returns true. Returns the
+       object, if it is found.
 
 Events
 ------
