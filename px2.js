@@ -378,5 +378,9 @@ function View(options, model) {
 View.prototype = Object.create(Class.prototype);
 View.prototype.constructor = View;
 /* (EXPORT *CLASS *VIEW) */
-module.exports.Class = Class;
-module.exports.View = View;
+if (module) {
+    module.exports.Class = Class;
+};
+if (module) {
+    module.exports.View = View;
+};
