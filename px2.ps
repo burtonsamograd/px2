@@ -17,7 +17,9 @@
         ((@ this create) def (getprop options 'defaults def))))
 
   (for-in (k options)
-     (setf (getprop this k) (getprop options k)))
+          (setf (getprop this k) (getprop options k)))
+
+  (setf this.length 0)
 
   (if (@ this init)
       (let ((args ((@ *Array prototype slice call) arguments 1)))

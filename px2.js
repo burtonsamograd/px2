@@ -29,6 +29,7 @@ function Event(target, value) {
                          ((@ THIS CREATE) DEF
                           (GETPROP OPTIONS 'DEFAULTS DEF))))
              (FOR-IN (K OPTIONS) (SETF (GETPROP THIS K) (GETPROP OPTIONS K)))
+             (SETF THIS.LENGTH 0)
              (IF (@ THIS INIT)
                  (LET ((ARGS ((@ *ARRAY PROTOTYPE SLICE CALL) ARGUMENTS 1)))
                    ((@ THIS INIT APPLY) THIS ARGS)))) */
@@ -45,6 +46,7 @@ function Class(options) {
     for (var k in options) {
         this[k] = options[k];
     };
+    this.length = 0;
     if (this.init) {
         var args = Array.prototype.slice.call(arguments, 1);
         this.init.apply(this, args);

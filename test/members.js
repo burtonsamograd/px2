@@ -12,6 +12,9 @@ module.exports = function (cls) {
                 }
             });
         });
+        it('should have a length member of 0', function () {
+            expect(obj.length).to.equal(0);
+        });
         it('should create new member getter/setter', function () {
             expect(obj.a).to.be.a.function;
         });
