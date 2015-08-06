@@ -1,4 +1,4 @@
-/* (LOAD ../test-macros.ps) */
+/* (LOAD test-macros.ps) */
 
 /* (CODE-COVERAGE /px2\//) */
 require('blanket')({ 'pattern' : function (filename) {
