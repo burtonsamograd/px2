@@ -131,10 +131,10 @@
   (let ((retval ((@ this _storage remove) obj)))
     (when retval
       (unless silent
+        (decf (@ this length)))
         (trigger this
                  :remove obj
                  :change obj))
-      (decf (@ this length)))
     retval))
 
 (defmethod *Class clear (silent)
