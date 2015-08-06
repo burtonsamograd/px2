@@ -161,8 +161,10 @@ View example
             }
         }
     
-        // constructor
-        init: function () {
+        // constructor is passed the model as the first argument (not
+        // optional), and any other arguments passed after that
+        init: function (model, value) {
+              this.create('value', value);
               this.points.on('add', this.render); // this is bound automagically
         }
     
@@ -174,8 +176,10 @@ View example
         }
     }
     var points = new Class(Points);
-    
-    var pointsView = new View(MyView, points);
+
+    // A view constructor is similar to a Class constructor, but the second argument
+    // to the call to new View is the Class (model) for the View.
+    var pointsView = new View(MyView, points, 1);
     $('document').ready(function () {
         $('body').html(pointsView.render());
     });
