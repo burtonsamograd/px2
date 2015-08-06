@@ -1,5 +1,4 @@
-/* --eval (DEFCONSTANT +DEBUG+ T)
- *//* (LOAD macros.ps) */
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -407,9 +406,9 @@ function View(options, model) {
 View.prototype = Object.create(Class.prototype);
 View.prototype.constructor = View;
 /* (EXPORT *CLASS *VIEW) */
-if (module) {
+if (typeof module !== 'undefined') {
     module.exports.Class = Class;
 };
-if (module) {
+if (typeof module !== 'undefined') {
     module.exports.View = View;
 };

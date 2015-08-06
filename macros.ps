@@ -63,6 +63,7 @@
 (defmacro export (&rest values)
   (let (results)
     (dolist (value values)
-      (push `(when module (setf (@ module exports ,value) ,value)) results))
+      (push `(unless (= (typeof module) "undefined")
+               (setf (@ module exports ,value) ,value)) results))
     (append '(progn) (nreverse results))))
     

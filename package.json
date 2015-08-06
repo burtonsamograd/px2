@@ -1,6 +1,6 @@
 {
   "name": "px2",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "PX2 is a backbone replacement.",
   "main": "px2.js",
   "directories": {
@@ -30,6 +30,7 @@
   "homepage": "https://github.com/burtonsamograd/px",
   "devDependencies": {
     "blanket": "^1.1.7",
+    "browserify": "^11.0.1",
     "chai": "^3.2.0",
     "jquery": "^2.1.4",
     "jsdom": "^6.0.0",
