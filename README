@@ -23,47 +23,49 @@ Installation
 Class methods
 -------------
 
-     this.create(name, value):
+     this.create(name, value, silent):
 
        Creates a new member variable called 'name' with initial value
        of 'value'. Also creates named getters/setters, this.name() and
        this.name(value). Sends 'create' and 'create:$name' messages
-       with value as event.value.
+       with value as event.value unless silent is given.
 
-     this.set(name, value)
+     this.set(name, value, silent)
 
        Standard setter for Class objects. Sends "change" and
        "change:$name" events when called.  The value of this.name() is
        the original value and the event.value (passed as the first
        part of 'change' trigger handler) is the value that this.name()
-       will be set to after the trigger handler returns.
+       will be set to after the trigger handler returns, unless silent
+       is given.
 
      this.get(name)
 
        Standard getter for Class objects
 
-     this.add(value)
+     this.add(value, silent)
 
        Add value to the collection if it is not already in the
        collection and sends "add" and "change" messages, with
-       event.target being the value.
+       event.target being the value, unless silent is given.
        
-     this.push(value)
+     this.push(value, silent)
 
        Add value to the head of the collection and sends "add" and
-       "change" messages, with event.target being the value. Much
-       faster than add, since it doesn't have to scan the entire
-       storage looking for a duplicate.
+       "change" messages, with event.target being the value, unless
+       silent is given. Much faster than add, since it doesn't have to
+       scan the entire storage looking for a duplicate.
        
-     this.remove(value)
+     this.remove(value, silent)
 
        Remove value from the collection if it has been added to it
        using add/push and sends "remove" and "change" messages if it
-       was removed.
+       was removed, unless silent is given.
 
      this.at(index)
 
-       Return an element in the collection located at index.
+       Return an element in the collection located at index.  Throws
+       Error if index is out of range.
        
      this.length:
 
@@ -72,7 +74,7 @@ Class methods
      this.clear()
 
        Remove all items from the collection and sets length to 0;
-       sends "change" message.
+       sends "change" message, unles silent is given.
 
      this.on(message, function (event) { ... }, self)
 
