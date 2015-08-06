@@ -27,41 +27,82 @@ Class methods
 
        Creates a new member variable called 'name' with initial value
        of 'value'. Also creates named getters/setters, this.name() and
-       this.name(value).
+       this.name(value). Sends 'create' and 'create:$name' messages
+       with value as event.value.
+       // TODO: silent arg
 
-       this.set(name, value)
-       this.get(name)
+     this.set(name, value)
 
-       Standard getter/setters for Class objects.
+       Standard setter for Class objects. Sends "change" and
+       "change:$name" events when called.  The value of this.name() is
+       the original value and the event.value (passed as the first
+       part of 'change' trigger handler) is the value that this.name()
+       will be set to after the trigger handler returns.
+       // TODO: silent arg
+
+     this.get(name)
+
+       Standard getter for Class objects
 
      this.add(value)
 
-       Add value to the collection, sends "add" and "change" messages
+       Add value to the collection if it is not already in the
+       collection and sends "add" and "change" messages, with
+       event.target being the value.
+       // TODO: silent arg
+       
+     this.push(value)
+
+       Add value to the head of the collection and sends "add" and
+       "change" messages, with event.target being the value. Much
+       faster than add, since it doesn't have to scan the entire
+       storage looking for a duplicate.
+       // TODO: silent arg
        
      this.remove(value)
 
-       Remove value from the collectionsends "remove" and "change"
-       messages
+       Remove value from the collection if it has been added to it
+       using add/push and sends "remove" and "change" messages if it
+       was removed.
+       // TODO: silent arg
 
      this.at(index)
 
-       Return the added element located at index.
-
+       Return an element in the collection located at index.
+       // TODO: range check and throw error?
+       
      this.length:
 
-        The number of elements contained in the object.
+       The number of elements contained in the object.
 
      this.clear()
 
-       Remove all items from the collection, sends "change" message
+       Remove all items from the collection and sets length to 0;
+       sends "change" message.
+       // TODO: silent arg
+
+     this.on(message, function (event) { ... }, self)
+
+       Intercept message with handler, setting this to self during
+       call of handler.  If 'self' is omitted, 'this' is used.
+       'event' contains event.value, which is the value passed to
+       trigger, and event.target which will be the object that
+       triggered the message, in most cases 'this'.
+
+     this.trigger(message, value)
+
+       Send the message to this, and then all containing parents,
+       recursively up the containment tree.  Propagation stops when
+       the message is intercepted and handled.
+       // TODO: continue propagation if handler returns true?
 
      this.each(function (value) ...)
 
-       Side effects only iteration over elements
+       Side effects only iteration over elements.
 
      this.map(function (value) ...)
 
-       Returns an array of returned values
+       Returns an array of returned values from function.
 
      this.find(object || function (value) ...)
 
