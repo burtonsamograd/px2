@@ -163,6 +163,8 @@ View example
     
         // constructor is passed the model as the first argument (not
         // optional), and any other arguments passed after that
+        // model can also be referenced as this.model, or this.points if using
+        // the 'model' option above.
         init: function (model, value) {
               this.create('value', value);
               this.points.on('add', this.render); // this is bound automagically
