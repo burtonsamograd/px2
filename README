@@ -111,6 +111,15 @@ Class methods
        element of the collection until it returns true, after which
        that object is returned.
 
+Events
+------
+
+      An event is passed to a trigger handler.  An event includes the
+      value and target fields; value is the value passed to
+      set/add/push/etc, and target is the object that initiated the
+      event.
+
+
 Example of defining and using a Class as an object and a container
 ------------------------------------------------------------------
 
