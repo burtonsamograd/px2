@@ -15,6 +15,11 @@ PX2 is a backbone replacement with a more consistent design:
    - objects that 'contain' (either by using 'set' or 'add' methods)
      other objects are passed messages from the objects they contain
 
+Installation
+------------
+
+    npm install px2
+
 Class methods
 -------------
 
