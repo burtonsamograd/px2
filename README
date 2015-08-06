@@ -15,7 +15,8 @@ PX2 is a backbone replacement with a more consistent design:
    - objects that 'contain' (either by using 'set' or 'add' methods)
      other objects are passed messages from the objects they contain
 
-Class methods:
+Class methods
+-------------
 
      this.create(name, value):
 
@@ -64,63 +65,64 @@ Class methods:
        element of the collection until it returns true, after which
        that object is returned.
 
-Example of defining and using a Class as an object and a container:
+Example of defining and using a Class as an object and a container
+------------------------------------------------------------------
 
-var Class = require("px2").Class;
-
-// Declare object class data
-var Point = {
-    // Optional, but good for debugging and containers
-    type: 'Point'
-
-    // Constructor, called during instatiation
-    init: function (x, y) {
-        this.create('x', x);
-        this.create('y', y);
+    var Class = require("px2").Class;
+    
+    // Declare object class data
+    var Point = {
+        // Optional, but good for debugging and containers
+        type: 'Point'
+    
+        // Constructor, called during instatiation
+        init: function (x, y) {
+            this.create('x', x);
+            this.create('y', y);
+        }
+    
+        // A random method
+        toString: function () {
+            return "x: " + x + ", y: " + y;
+        }
     }
-
-    // A random method
-    toString: function () {
-        return "x: " + x + ", y: " + y;
+    
+    // Delcare a container
+    var Points = {
+        type: 'Points',
+    
+        // This container contatins type...
+        contains: 'Point'
+    
+        init: function () {
+            this.create('currentPoint'); // undefined initially
+    
+            this.on('add', function (e) {
+                // Use a named setter to set the current value of member 'currentPoint'.
+                // e is passed to all trigger functions and it contains:
+                //          e.value: the value that was added/removed/updated/etc
+                //          e.target: the object that was updated, in this case it would be 'this'
+                this.currentPoint(e.value);
+            });
+            this.on('remove', function (e) {
+                if(e.value === this.currentPoint()) {
+                    this.currenPoint(undefined);
+                }
+            });
+        }
     }
-}
-
-// Delcare a container
-var Points = {
-    type: 'Points',
-
-    // This container contatins type...
-    contains: 'Point'
-
-    init: function () {
-        this.create('currentPoint'); // undefined initially
-
-        this.on('add', function (e) {
-            // Use a named setter to set the current value of member 'currentPoint'.
-            // e is passed to all trigger functions and it contains:
-            //          e.value: the value that was added/removed/updated/etc
-            //          e.target: the object that was updated, in this case it would be 'this'
-            this.currentPoint(e.value);
-        });
-        this.on('remove', function (e) {
-            if(e.value === this.currentPoint()) {
-                this.currenPoint(undefined);
-            }
-        });
-    }
-}
-
-// Instantiate a MyObject
-var points = new Class(Points);
-
-points.add(new Class(Point, 100, 200));
-
-var point = points.at(0);
-
-var xs = point.map(function (point) {
-    return point.x();
-}); // => [100]
-
+    
+    // Instantiate a MyObject
+    var points = new Class(Points);
+    
+    points.add(new Class(Point, 100, 200));
+    
+    var point = points.at(0);
+    
+    var xs = point.map(function (point) {
+        return point.x();
+    }); // => [100]
+    
 Views
 -----
 
@@ -130,48 +132,48 @@ Class(es) give.
 View example
 ------------
 
-var View = require("px2").View;
-
-var PointsView = {
-    // optional, but handy for debugging and is the default class if
-    // className is not defined (below)
-    type: 'PointsView',
-
-    // optional, sets default tag name of this.$el, else is "div"
-    tagName: "span",  
-
-    // optional, sets default class of this.$el, else is the value of 'type'
-    className: "",
-
-    // optional name for this.model, in this case, you could use
-    // this.myModel to reference your model
-    model: 'points',
-
-    // events, just like backbone
-    events: {
-        'click': function (e) {
-                 alert('Hello world'); // this is bound for you automagically
+    var View = require("px2").View;
+    
+    var PointsView = {
+        // optional, but handy for debugging and is the default class if
+        // className is not defined (below)
+        type: 'PointsView',
+    
+        // optional, sets default tag name of this.$el, else is "div"
+        tagName: "span",  
+    
+        // optional, sets default class of this.$el, else is the value of 'type'
+        className: "",
+    
+        // optional name for this.model, in this case, you could use
+        // this.myModel to reference your model
+        model: 'points',
+    
+        // events, just like backbone
+        events: {
+            'click': function (e) {
+                     alert('Hello world'); // this is bound for you automagically
+            }
+        }
+    
+        // constructor
+        init: function () {
+              this.points.on('add', this.render); // this is bound automagically
+        }
+    
+        // render, if you don't provide it a default is given that just returns this.$el
+        render: {
+                return this.$el.html(this.points.map(function (v) {
+                    return $('<div>').text(v.toString());
+                }));
         }
     }
-
-    // constructor
-    init: function () {
-          this.points.on('add', this.render); // this is bound automagically
-    }
-
-    // render, if you don't provide it a default is given that just returns this.$el
-    render: {
-            return this.$el.html(this.points.map(function (v) {
-                return $('<div>').text(v.toString());
-            }));
-    }
-}
-var points = new Class(Points);
-
-var pointsView = new View(MyView, points);
-$('document').ready(function () {
-    $('body').html(pointsView.render());
-});
+    var points = new Class(Points);
+    
+    var pointsView = new View(MyView, points);
+    $('document').ready(function () {
+        $('body').html(pointsView.render());
+    });
 
 
 WTF is this written in?
