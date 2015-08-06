@@ -39,5 +39,45 @@ module.exports = function (cls) {
             obj.a(obj.a()+1);
             expect(handler.calledTwice).to.be.true;
         });
+
+        it('should not call the parent event handler when false is returned from the child event handler', function () {
+               var child = new cls({
+                   init: function () {
+                       this.create('a', 0);
+                   }
+               });
+               var parent = new cls({});
+               parent.add(child);
+
+               parentHandler = sinon.spy(function (e) { });
+               childHandler = sinon.spy(function (e) { return false; });
+
+               parent.on('change', parentHandler);
+               child.on('change', childHandler);
+
+               child.a(1);
+
+               expect(parentHandler.called).to.be.false;
+        });
+        
+        it('should call the parent event handler when true is returned from the child event handler', function () {
+               var child = new cls({
+                   init: function () {
+                       this.create('a', 0);
+                   }
+               });
+               var parent = new cls({});
+               parent.add(child);
+
+               parentHandler = sinon.spy(function (e) { });
+               childHandler = sinon.spy(function (e) { return true; });
+
+               parent.on('change', parentHandler);
+               child.on('change', childHandler);
+
+               child.a(1);
+
+               expect(parentHandler.called).to.be.true;
+        });
     });
 }

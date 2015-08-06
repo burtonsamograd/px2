@@ -72,19 +72,23 @@
   (trigger this :destroy (getprop this '_props name)))
 
 (defmethod *Class trigger (message value target)
-  (let ((actions (getprop this '_actions message)))
+  (let ((actions (getprop this '_actions message))
+        trigger-parents)
     (if actions
         (let ((event (new (*Event (or target this) value)))
               (to-remove (array)))
           (dolist (action actions)
-            ((@ action fun call) (@ action self) event)
+            (when ((@ action fun call) (@ action self) event)
+              (setf trigger-parents t))
             (if (@ action once)
                 ((@ to-remove push) action)))
           (dolist (action to-remove)
-            ((@ to-remove remove) action)))
-    (dolist (parent (@ this _parents))
-      (unless (= parent target) ;; don't blow the stack when x contains y and y contains x
-        ((@ this trigger call) parent message value (or target this)))))))
+            ((@ actions remove) action)))
+        (setf trigger-parents t))
+    (when trigger-parents
+      (dolist (parent (@ this _parents))
+        (unless (= parent target) ;; don't blow the stack when x contains y and y contains x
+          ((@ this trigger call) parent message value (or target this)))))))
 
 ;; TODO: refactor on and once
 (defmethod *Class on (message fun self)
@@ -130,11 +134,11 @@
 (defmethod *Class remove (obj silent)
   (let ((retval ((@ this _storage remove) obj)))
     (when retval
+      (decf (@ this length))
       (unless silent
-        (decf (@ this length)))
         (trigger this
                  :remove obj
-                 :change obj))
+                 :change obj)))
     retval))
 
 (defmethod *Class clear (silent)
@@ -201,4 +205,3 @@
     ))
 
 (export *Class *View)
-

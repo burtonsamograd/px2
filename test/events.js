@@ -50,6 +50,12 @@ module.exports = function (cls) {
             obj.a(1);
             expect(handler.calledTwice).to.be.true;
         });
+        it('should only call the handler once when once is used', function () {
+            obj.once('change:a', handler);
+            obj.a(1);
+            obj.a(1);
+            expect(handler.calledOnce).to.be.true;
+        });
         it('should bind this properly by default in handler', function () {
             obj.on('change', function (e) {
                 expect(this).to.equal(obj)

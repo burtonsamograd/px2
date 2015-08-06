@@ -60,7 +60,8 @@ Class methods
 
        Remove value from the collection if it has been added to it
        using add/push and sends "remove" and "change" messages if it
-       was removed, unless silent is given.
+       was removed, unless silent is given. Returns true if the object
+       was removed, false otherwise.
 
      this.at(index)
 
@@ -83,6 +84,10 @@ Class methods
        'event' contains event.value, which is the value passed to
        trigger, and event.target which will be the object that
        triggered the message, in most cases 'this'.
+
+       If the event handler returns true, messages will continue to
+       propagate up the containment chain, else it will stop at the
+       handling object.
 
      this.once(message, function (event) { ... }, self)
 
@@ -109,7 +114,7 @@ Class methods
        Find a specific object in the collection.  If the argument is
        an object, === is used, if a function it is called with each
        element of the collection until it returns true, after which
-       that object is returned.
+       that object is returned. Returns the object, if it is found.
 
 Events
 ------

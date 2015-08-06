@@ -133,38 +133,46 @@ Class.prototype.destroy = function (name) {
     return this.trigger('destroy', this._props[name]);
 };
 /* (DEFMETHOD *CLASS TRIGGER (MESSAGE VALUE TARGET)
-     (LET ((ACTIONS (GETPROP THIS '_ACTIONS MESSAGE)))
+     (LET ((ACTIONS (GETPROP THIS '_ACTIONS MESSAGE)) TRIGGER-PARENTS)
        (IF ACTIONS
            (LET ((EVENT (NEW (*EVENT (OR TARGET THIS) VALUE)))
                  (TO-REMOVE (ARRAY)))
              (DOLIST (ACTION ACTIONS)
-               ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT)
+               (WHEN ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT)
+                 (SETF TRIGGER-PARENTS T))
                (IF (@ ACTION ONCE)
                    ((@ TO-REMOVE PUSH) ACTION)))
-             (DOLIST (ACTION TO-REMOVE) ((@ TO-REMOVE REMOVE) ACTION)))
-           (DOLIST (PARENT (@ THIS _PARENTS))
-             (UNLESS (= PARENT TARGET)
-               ((@ THIS TRIGGER CALL) PARENT MESSAGE VALUE
-                (OR TARGET THIS))))))) */
+             (DOLIST (ACTION TO-REMOVE) ((@ ACTIONS REMOVE) ACTION)))
+           (SETF TRIGGER-PARENTS T))
+       (WHEN TRIGGER-PARENTS
+         (DOLIST (PARENT (@ THIS _PARENTS))
+           (UNLESS (= PARENT TARGET)
+             ((@ THIS TRIGGER CALL) PARENT MESSAGE VALUE (OR TARGET THIS))))))) */
 Class.prototype.trigger = function (message, value, target) {
     var actions = this._actions[message];
+    var triggerParents = null;
     if (actions) {
         var event = new Event(target || this, value);
         var toRemove = [];
         for (var action = null, _js_idx2 = 0; _js_idx2 < actions.length; _js_idx2 += 1) {
             action = actions[_js_idx2];
-            action.fun.call(action.self, event);
+            if (action.fun.call(action.self, event)) {
+                triggerParents = true;
+            };
             if (action.once) {
                 toRemove.push(action);
             };
         };
         for (var action = null, _js_idx3 = 0; _js_idx3 < toRemove.length; _js_idx3 += 1) {
             action = toRemove[_js_idx3];
-            toRemove.remove(action);
+            actions.remove(action);
         };
     } else {
-        for (var parent = null, _js_arrvar5 = this._parents, _js_idx4 = 0; _js_idx4 < _js_arrvar5.length; _js_idx4 += 1) {
-            parent = _js_arrvar5[_js_idx4];
+        triggerParents = true;
+    };
+    if (triggerParents) {
+        for (var parent = null, _js_arrvar7 = this._parents, _js_idx6 = 0; _js_idx6 < _js_arrvar7.length; _js_idx6 += 1) {
+            parent = _js_arrvar7[_js_idx6];
             if (parent !== target) {
                 this.trigger.call(parent, message, value, target || this);
             };
@@ -256,17 +264,17 @@ Class.prototype.add = function (obj, silent) {
 /* (DEFMETHOD *CLASS REMOVE (OBJ SILENT)
      (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
        (WHEN RETVAL
-         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ CHANGE OBJ))
-         (DECF (@ THIS LENGTH)))
+         (DECF (@ THIS LENGTH))
+         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ CHANGE OBJ)))
        RETVAL)) */
 Class.prototype.remove = function (obj, silent) {
     var retval = this._storage.remove(obj);
     if (retval) {
+        --this.length;
         if (!silent) {
             this.trigger('remove', obj);
             this.trigger('change', obj);
         };
-        --this.length;
     };
     return retval;
 };
@@ -297,10 +305,10 @@ Class.prototype.at = function (index) {
      (LET ((SELF (OR SELF THIS)))
        (DOLIST (ITEM (@ THIS _STORAGE)) ((@ FUN CALL) SELF ITEM)))) */
 Class.prototype.each = function (fun, self) {
-    var self6 = self || this;
-    for (var item = null, _js_arrvar8 = this._storage, _js_idx7 = 0; _js_idx7 < _js_arrvar8.length; _js_idx7 += 1) {
-        item = _js_arrvar8[_js_idx7];
-        fun.call(self6, item);
+    var self8 = self || this;
+    for (var item = null, _js_arrvar10 = this._storage, _js_idx9 = 0; _js_idx9 < _js_arrvar10.length; _js_idx9 += 1) {
+        item = _js_arrvar10[_js_idx9];
+        fun.call(self8, item);
     };
 };
 /* (DEFMETHOD *CLASS MAP (FUN SELF)
@@ -310,10 +318,10 @@ Class.prototype.each = function (fun, self) {
        RESULT)) */
 Class.prototype.map = function (fun, self) {
     var result = [];
-    var self9 = self || this;
-    for (var item = null, _js_arrvar11 = this._storage, _js_idx10 = 0; _js_idx10 < _js_arrvar11.length; _js_idx10 += 1) {
-        item = _js_arrvar11[_js_idx10];
-        result.push(fun.call(self9, item));
+    var self11 = self || this;
+    for (var item = null, _js_arrvar13 = this._storage, _js_idx12 = 0; _js_idx12 < _js_arrvar13.length; _js_idx12 += 1) {
+        item = _js_arrvar13[_js_idx12];
+        result.push(fun.call(self11, item));
     };
     return result;
 };
@@ -324,10 +332,10 @@ Class.prototype.map = function (fun, self) {
        RESULT)) */
 Class.prototype.filter = function (fun, self) {
     var result = [];
-    var self12 = self || this;
-    for (var item = null, _js_arrvar14 = this._storage, _js_idx13 = 0; _js_idx13 < _js_arrvar14.length; _js_idx13 += 1) {
-        item = _js_arrvar14[_js_idx13];
-        if (fun.call(self12, item)) {
+    var self14 = self || this;
+    for (var item = null, _js_arrvar16 = this._storage, _js_idx15 = 0; _js_idx15 < _js_arrvar16.length; _js_idx15 += 1) {
+        item = _js_arrvar16[_js_idx15];
+        if (fun.call(self14, item)) {
             result.push(item);
         };
     };
@@ -341,15 +349,15 @@ Class.prototype.filter = function (fun, self) {
            (WHEN (= FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM))))) */
 Class.prototype.find = function (funOrObj) {
     if (typeof funOrObj === 'function') {
-        for (var item = null, _js_arrvar18 = this._storage, _js_idx17 = 0; _js_idx17 < _js_arrvar18.length; _js_idx17 += 1) {
-            item = _js_arrvar18[_js_idx17];
+        for (var item = null, _js_arrvar20 = this._storage, _js_idx19 = 0; _js_idx19 < _js_arrvar20.length; _js_idx19 += 1) {
+            item = _js_arrvar20[_js_idx19];
             if (funOrObj(item)) {
                 return item;
             };
         };
     } else {
-        for (var item = null, _js_arrvar20 = this._storage, _js_idx19 = 0; _js_idx19 < _js_arrvar20.length; _js_idx19 += 1) {
-            item = _js_arrvar20[_js_idx19];
+        for (var item = null, _js_arrvar22 = this._storage, _js_idx21 = 0; _js_idx21 < _js_arrvar22.length; _js_idx21 += 1) {
+            item = _js_arrvar22[_js_idx21];
             if (funOrObj === item) {
                 return item;
             };
