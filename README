@@ -18,7 +18,8 @@ PX2 is a backbone replacement with a more consistent design:
 Installation
 ------------
 
-    npm install px2
+    npm install --save px2
+    bower install --save px2
 
 Class methods
 -------------

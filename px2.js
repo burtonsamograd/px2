@@ -55,9 +55,10 @@ function Class(options) {
     return this;
 };
 /* (DEFUN *CLASSP (VALUE)
-     (AND (= (TYPEOF VALUE) OBJECT) ((@ *ARRAY IS-ARRAY) (@ VALUE _PARENTS)))) */
+     (AND (= (TYPEOF VALUE) OBJECT) ((@ *ARRAY IS-ARRAY) (@ VALUE _STORAGE))
+          ((@ *ARRAY IS-ARRAY) (@ VALUE _PARENTS)))) */
 function Classp(value) {
-    return typeof value === 'object' && Array.isArray(value._parents);
+    return typeof value === 'object' && Array.isArray(value._storage) && Array.isArray(value._parents);
 };
 /* (DEFUN ADD-PARENT (CHILD PARENT NAME)
      (WHEN (*CLASSP CHILD)
@@ -73,12 +74,12 @@ function addParent(child, parent, name) {
     };
 };
 /* (DEFMETHOD *CLASS GET (NAME SILENT)
-     (UNLESS SILENT (TRIGGER THIS get THIS[NAME] (+ get: NAME) THIS[NAME]))
+     (UNLESS SILENT (TRIGGER THIS GET THIS[NAME] (+ GET : NAME) THIS[NAME]))
      (GETPROP THIS '_PROPS NAME)) */
 Class.prototype.get = function (name, silent) {
     if (!silent) {
         this.trigger('get', this[name]);
-        this.trigger('get:' + name, this[name]);
+        this.trigger('get' + ':' + name, this[name]);
     };
     return this._props[name];
 };
@@ -289,7 +290,7 @@ Class.prototype.remove = function (obj, silent) {
 /* (DEFMETHOD *CLASS CLEAR (SILENT)
      (SETF (@ THIS _STORAGE) (ARRAY)
            (@ THIS LENGTH) 0)
-     (UNLESS SILENT (TRIGGER THIS clear THIS change))) */
+     (UNLESS SILENT (TRIGGER THIS CLEAR THIS CHANGE))) */
 Class.prototype.clear = function (silent) {
     this._storage = [];
     this.length = 0;
@@ -377,7 +378,7 @@ Class.prototype.find = function (funOrObj) {
 };
 /* (DEFMETHOD *CLASS SORT (FUN SILENT)
      ((@ THIS _STORAGE SORT) FUN)
-     (UNLESS SILENT (TRIGGER THIS change THIS sorted THIS))
+     (UNLESS SILENT (TRIGGER THIS CHANGE THIS SORTED THIS))
      THIS) */
 Class.prototype.sort = function (fun, silent) {
     this._storage.sort(fun);

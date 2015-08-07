@@ -1,0 +1,30 @@
+{
+  "name": "px2",
+  "main": "px2.js",
+  "version": "1.0.14",
+  "homepage": "https://github.com/burtonsamograd/px2",
+  "authors": [
+    "Burton Samograd <burton.samograd@gmail.com>"
+  ],
+  "description": "PX2 is a backbone replacement.",
+  "keywords": [
+    "controller",
+    "model",
+    "view",
+    "event",
+    "object",
+    "backbone",
+    "framework"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4"
+  }
+}
