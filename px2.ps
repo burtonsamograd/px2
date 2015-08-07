@@ -37,8 +37,8 @@
 (defmethod *Class get (name silent)
   (unless silent
     (trigger this 
-             "get" this[name]
-             (+ "get:" name) this[name]))
+             :get this[name]
+             (+ :get ":" name) this[name]))
     (getprop this '_props name))
 
 (defun getset (name value silent)
@@ -151,8 +151,8 @@
   (setf (@ this _storage) (array)
         (@ this length) 0)
   (unless silent
-    (trigger this "clear"
-             this "change")))
+    (trigger this :clear
+             this :change)))
 
 (defmethod *Class at (index)
   (when (>= index (@ this length))
@@ -194,8 +194,8 @@
   ((@ this _storage sort) fun)
   (unless silent
     (trigger this
-             "change" this
-             "sorted" this))
+             :change this
+             :sorted this))
   this)
 
 (defclass *View (*Class) (options model)
