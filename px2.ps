@@ -147,7 +147,8 @@
   (setf (@ this _storage) (array)
         (@ this length) 0)
   (unless silent
-    (trigger this "change")))
+    (trigger this "clear"
+             this "change")))
 
 (defmethod *Class at (index)
   (when (>= index (@ this length))

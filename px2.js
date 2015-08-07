@@ -1,5 +1,4 @@
-/* --eval (DEFCONSTANT +DEBUG+ T)
- *//* (LOAD macros.ps) */
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -283,11 +282,14 @@ Class.prototype.remove = function (obj, silent) {
 /* (DEFMETHOD *CLASS CLEAR (SILENT)
      (SETF (@ THIS _STORAGE) (ARRAY)
            (@ THIS LENGTH) 0)
-     (UNLESS SILENT (TRIGGER THIS change))) */
+     (UNLESS SILENT (TRIGGER THIS clear THIS change))) */
 Class.prototype.clear = function (silent) {
     this._storage = [];
     this.length = 0;
-    return !silent ? this.trigger('change', null) : null;
+    if (!silent) {
+        this.trigger('clear', this);
+        return this.trigger('change', null);
+    };
 };
 /* (DEFMETHOD *CLASS AT (INDEX)
      (WHEN (>= INDEX (@ THIS LENGTH))
