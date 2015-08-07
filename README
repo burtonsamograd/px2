@@ -144,7 +144,7 @@ Example of defining and using a Class as an object and a container
         // optional, create members and set default values 
         defaults: {
             system: "cartesian"
-        }
+        },
     
         // Constructor, called during instatiation
         init: function (x, y) {
