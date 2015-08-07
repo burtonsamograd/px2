@@ -25,8 +25,10 @@
       (let ((args ((@ *Array prototype slice call) arguments 1)))
         ((@ this init apply) this args))))
 
-(defun *Classp (value) ;; TODO: this could be better written/more accurate
-  (and (= (typeof value) :object) ((@ *Array is-array) (@ value _parents))))
+(defun *Classp (value) ;; TODO: this could be better written/more accurate, faster
+  (and (= (typeof value) :object)
+       ((@ *Array is-array) (@ value _storage))
+       ((@ *Array is-array) (@ value _parents))))
 
 (defun add-parent (child parent name)
   (when (*Classp child)
