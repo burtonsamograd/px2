@@ -190,8 +190,12 @@
           (when (= fun-or-obj item)
             (return-from find item)))))
 
-(defmethod *Class sort (fun)
+(defmethod *Class sort (fun silent)
   ((@ this _storage sort) fun)
+  (unless silent
+    (trigger this
+             "change" this
+             "sorted" this))
   this)
 
 (defclass *View (*Class) (options model)

@@ -375,9 +375,16 @@ Class.prototype.find = function (funOrObj) {
         };
     };
 };
-/* (DEFMETHOD *CLASS SORT (FUN) ((@ THIS _STORAGE SORT) FUN) THIS) */
-Class.prototype.sort = function (fun) {
+/* (DEFMETHOD *CLASS SORT (FUN SILENT)
+     ((@ THIS _STORAGE SORT) FUN)
+     (UNLESS SILENT (TRIGGER THIS change THIS sorted THIS))
+     THIS) */
+Class.prototype.sort = function (fun, silent) {
     this._storage.sort(fun);
+    if (!silent) {
+        this.trigger('change', this);
+        this.trigger('sorted', this);
+    };
     return this;
 };
 /* (DEFCLASS *VIEW (*CLASS) (OPTIONS MODEL)

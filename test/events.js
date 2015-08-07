@@ -127,5 +127,13 @@ module.exports = function (cls) {
             obj.clear(true);
             expect(handler.calledTwice).to.be.true;
         });
+        it('should call a handler when calling sort', function () {
+            obj.push(1);
+            obj.push(2);
+            obj.on('change', handler);
+            obj.on('sorted', handler);
+            obj.sort(function (a, b) { return a - b; });
+            expect(handler.calledTwice).to.be.true;
+        });
     });
 }
