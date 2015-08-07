@@ -33,6 +33,12 @@ module.exports = function (cls) {
             obj.a(1);
             expect(handler.calledTwice).to.be.true;
         });
+        it('should detect gets call a handler when required', function () {
+            obj.on('get', handler);
+            obj.on('get:a', handler);
+            obj.a();
+            expect(handler.calledTwice).to.be.true;
+        });
         it('should not call a handler when a variable has not been changed', function () {
             obj.on('change:a', handler);
             obj.b(1);

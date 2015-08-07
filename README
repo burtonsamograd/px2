@@ -39,7 +39,7 @@ Class methods
        will be set to after the trigger handler returns, unless silent
        is given.
 
-     this.get(name)
+     this.get(name, silent)
 
        Standard getter for Class objects
 

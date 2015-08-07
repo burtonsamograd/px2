@@ -1,4 +1,5 @@
-/* (LOAD macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -71,8 +72,14 @@ function addParent(child, parent, name) {
         });
     };
 };
-/* (DEFMETHOD *CLASS GET (NAME) (GETPROP THIS '_PROPS NAME)) */
-Class.prototype.get = function (name) {
+/* (DEFMETHOD *CLASS GET (NAME SILENT)
+     (UNLESS SILENT (TRIGGER THIS get THIS[NAME] (+ get: NAME) THIS[NAME]))
+     (GETPROP THIS '_PROPS NAME)) */
+Class.prototype.get = function (name, silent) {
+    if (!silent) {
+        this.trigger('get', this[name]);
+        this.trigger('get:' + name, this[name]);
+    };
     return this._props[name];
 };
 /* (DEFUN GETSET (NAME VALUE SILENT)

@@ -34,8 +34,12 @@
     ((@ parent once) (+ :change ":" name) (lambda (e)
                                             ((@ child _parents remove) (@ e target))))))
 
-(defmethod *Class get (name)
-  (getprop this '_props name))
+(defmethod *Class get (name silent)
+  (unless silent
+    (trigger this 
+             "get" this[name]
+             (+ "get:" name) this[name]))
+    (getprop this '_props name))
 
 (defun getset (name value silent)
   (if (= (@ arguments length) 1)
