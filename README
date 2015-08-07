@@ -205,8 +205,10 @@ View example
         // optional, sets default class of this.$el, else is the value of 'type'
         className: "",
     
-        // optional name for this.model, in this case, you could use
-        // this.myModel to reference your model
+        // optional, name for this.model. In this case, you could use
+        // this.points to reference your model. The model is not
+        // enclosed in the object, so messages from the model are
+        // not propagated into this View.
         model: 'points',
 
         // optional css initial style, using jquery syntax
@@ -228,20 +230,23 @@ View example
         init: function (model, value) {
               this.create('value', value);
               this.create('message', "Hello World!");
-              this.points.on('add', this.render); // this is bound automagically
+              this.points.on('add', this.render); // 'this' is bound automagically
         }
     
-        // render, if you don't provide it a default is given that just returns this.$el
+        // render, which if you don't provide a default is given that
+        // just returns this.$el
         render: {
                 return this.$el.html(this.points.map(function (v) {
                     return $('<div>').text(v.toString());
                 }));
         }
     }
+
     var points = new Class(Points);
 
-    // A view constructor is similar to a Class constructor, but the second argument
-    // to the call to new View is the Class (model) for the View.
+    // A view constructor is similar to a Class constructor, but the
+    // second argument to the call to new View is the model (generally
+    // a Class) for the View.
     var pointsView = new View(MyView, points, 1);
     $('document').ready(function () {
         $('body').html(pointsView.render());
