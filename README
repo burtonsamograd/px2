@@ -208,6 +208,11 @@ View example
         // optional name for this.model, in this case, you could use
         // this.myModel to reference your model
         model: 'points',
+
+        // optional css initial style, using jquery syntax
+        style: {
+               "font-weight": "bold"
+        }
     
         // events, just like backbone
         events: {
