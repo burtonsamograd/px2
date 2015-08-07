@@ -217,7 +217,7 @@ View example
         // events, just like backbone
         events: {
             'click': function (e) {
-                     alert('Hello world'); // this is bound for you automagically
+                     alert(this.message()); // 'this' is bound for you automagically
             }
         }
     
@@ -227,6 +227,7 @@ View example
         // the 'model' option above.
         init: function (model, value) {
               this.create('value', value);
+              this.create('message', "Hello World!");
               this.points.on('add', this.render); // this is bound automagically
         }
     
