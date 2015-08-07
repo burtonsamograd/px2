@@ -72,10 +72,10 @@ Class methods
 
        The number of elements contained in the object.
 
-     this.clear()
+     this.clear(silent)
 
        Remove all items from the collection and sets length to 0;
-       sends "change" message, unles silent is given.
+       sends "change" and "clear" message, unles silent is given.
 
      this.on(message, function (event) { ... }, self)
 
