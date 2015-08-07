@@ -28,7 +28,7 @@ Class methods
        Creates a new member variable called 'name' with initial value
        of 'value'. Also creates named getters/setters, this.name() and
        this.name(value). Sends 'create' and 'create:$name' messages
-       with value as event.value unless silent is given.
+       with value as event.value unless silent is true.
 
      this.set(name, value, silent)
 
@@ -41,26 +41,27 @@ Class methods
 
      this.get(name, silent)
 
-       Standard getter for Class objects
+       Standard getter for Class objects, sends 'get' and 'get:$name'
+       messages, unless silent is true.
 
      this.add(value, silent)
 
        Add value to the collection if it is not already in the
        collection and sends "add" and "change" messages, with
-       event.target being the value, unless silent is given.
+       event.target being the value, unless silent is true.
        
      this.push(value, silent)
 
        Add value to the head of the collection and sends "add" and
        "change" messages, with event.target being the value, unless
-       silent is given. Much faster than add, since it doesn't have to
+       silent is true. Much faster than add, since it doesn't have to
        scan the entire storage looking for a duplicate.
        
      this.remove(value, silent)
 
        Remove value from the collection if it has been added to it
        using add/push and sends "remove" and "change" messages if it
-       was removed, unless silent is given. Returns true if the object
+       was removed, unless silent is true. Returns true if the object
        was removed, false otherwise.
 
      this.at(index)
@@ -75,7 +76,7 @@ Class methods
      this.clear(silent)
 
        Remove all items from the collection and sets length to 0;
-       sends "change" and "clear" message, unles silent is given.
+       sends "change" and "clear" message, unles silent is true.
 
      this.on(message, function (event) { ... }, self)
 
