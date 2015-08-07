@@ -116,6 +116,11 @@ Class methods
        element of the collection until it returns true. Returns the
        object, if it is found.
 
+     this.sort(fun)
+
+        Destructively sorts the internal storage array using fun,
+        returns 'this' so you can chain with map.
+
 Events
 ------
 

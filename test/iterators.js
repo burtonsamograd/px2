@@ -48,5 +48,15 @@ module.exports = function (cls) {
             var result = o.find(function (x) { return x === 4; });
             expect(result).to.equal(undefined);
         });
+
+        it('should sort the collection', function () {
+            var o = new cls();
+            o.add(3);
+            o.add(1);
+            o.add(2);
+            var result = o.sort(function (a, b) { return a - b; }).map(function (x) { return x; });
+            expect(result).to.eql([1,2,3]);
+            expect(o._storage).to.eql([1,2,3]);
+        });
     });
 }

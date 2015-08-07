@@ -1,4 +1,5 @@
-/* (LOAD macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -364,6 +365,11 @@ Class.prototype.find = function (funOrObj) {
             };
         };
     };
+};
+/* (DEFMETHOD *CLASS SORT (FUN) ((@ THIS _STORAGE SORT) FUN) THIS) */
+Class.prototype.sort = function (fun) {
+    this._storage.sort(fun);
+    return this;
 };
 /* (DEFCLASS *VIEW (*CLASS) (OPTIONS MODEL)
              (SETF (@ THIS MODEL) MODEL

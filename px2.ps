@@ -185,6 +185,10 @@
           (when (= fun-or-obj item)
             (return-from find item)))))
 
+(defmethod *Class sort (fun)
+  ((@ this _storage sort) fun)
+  this)
+
 (defclass *View (*Class) (options model)
   (setf (@ this model) model
         (@ this $el) ($ :<div>))
