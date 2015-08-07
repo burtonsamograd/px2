@@ -140,6 +140,11 @@ Example of defining and using a Class as an object and a container
     var Point = {
         // Optional, but good for debugging and containers
         type: 'Point'
+
+        // optional, create members and set default values 
+        defaults: {
+            system: "cartesian"
+        }
     
         // Constructor, called during instatiation
         init: function (x, y) {
@@ -149,7 +154,7 @@ Example of defining and using a Class as an object and a container
     
         // A random method
         toString: function () {
-            return "x: " + x + ", y: " + y;
+            return "x: " + this.x() + ", y: " + this.y() + " " + this.system();
         }
     }
     
