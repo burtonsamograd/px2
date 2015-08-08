@@ -145,13 +145,13 @@ Class.prototype.set = function (name, value, silent) {
 /* (DEFMETHOD *CLASS DESTROY (NAME)
      (LET ((VALUE (GETPROP THIS '_PROPS NAME)))
        (DELETE (GETPROP THIS '_PROPS NAME))
-       (DELETE (GETPROP THIS '_PROPS (+ CHANGE : NAME)))
+       (DELETE (GETPROP THIS '_ACTIONS (+ CHANGE : NAME)))
        (DELETE (GETPROP THIS NAME))
        (TRIGGER THIS DESTROY VALUE))) */
 Class.prototype.destroy = function (name) {
     var value = this._props[name];
     delete this._props[name];
-    delete this._props['change' + ':' + name];
+    delete this._actions['change' + ':' + name];
     delete this[name];
     return this.trigger('destroy', value);
 };

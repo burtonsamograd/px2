@@ -78,7 +78,7 @@
 (defmethod *Class destroy (name)
   (let ((value (getprop this '_props name)))
     (delete (getprop this '_props name))                  ; remove property 
-    (delete (getprop this '_props (+ :change ":" name)))  ; remove change action
+    (delete (getprop this '_actions (+ :change ":" name))); remove change action
     (delete (getprop this name))                          ; remove named getter/setter
     (trigger this :destroy value)))
 
