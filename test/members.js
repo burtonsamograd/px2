@@ -51,6 +51,9 @@ module.exports = function (cls) {
         it('should destroy members', function () {
             obj.destroy('a');
             expect(obj.set.bind(obj, 'a')).to.throw(Error);
+            expect(obj.get.bind(obj, 'a')).to.throw(Error);
+            expect(obj.a).to.equal(undefined);
+            expect(obj._actions['change:a']).to.be.undefined;
         });
     });
 }

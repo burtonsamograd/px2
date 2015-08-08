@@ -74,9 +74,17 @@ function addParent(child, parent, name) {
     };
 };
 /* (DEFMETHOD *CLASS GET (NAME SILENT)
+     (IF (NOT ((@ THIS _PROPS HAS-OWN-PROPERTY) NAME))
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to get a property  NAME  that does not exist.)))))
      (UNLESS SILENT (TRIGGER THIS GET THIS[NAME] (+ GET : NAME) THIS[NAME]))
      (GETPROP THIS '_PROPS NAME)) */
 Class.prototype.get = function (name, silent) {
+    if (!this._props.hasOwnProperty(name)) {
+        throw new Error('Attempt to get a property ' + name + ' that does not exist.');
+    };
     if (!silent) {
         this.trigger('get', this[name]);
         this.trigger('get' + ':' + name, this[name]);
@@ -135,11 +143,17 @@ Class.prototype.set = function (name, value, silent) {
     return this._props[name] = value;
 };
 /* (DEFMETHOD *CLASS DESTROY (NAME)
-     (DELETE (GETPROP THIS '_PROPS NAME))
-     (TRIGGER THIS DESTROY (GETPROP THIS '_PROPS NAME))) */
+     (LET ((VALUE (GETPROP THIS '_PROPS NAME)))
+       (DELETE (GETPROP THIS '_PROPS NAME))
+       (DELETE (GETPROP THIS '_PROPS (+ CHANGE : NAME)))
+       (DELETE (GETPROP THIS NAME))
+       (TRIGGER THIS DESTROY VALUE))) */
 Class.prototype.destroy = function (name) {
+    var value = this._props[name];
     delete this._props[name];
-    return this.trigger('destroy', this._props[name]);
+    delete this._props['change' + ':' + name];
+    delete this[name];
+    return this.trigger('destroy', value);
 };
 /* (DEFMETHOD *CLASS TRIGGER (MESSAGE VALUE TARGET)
      (LET ((ACTIONS (GETPROP THIS '_ACTIONS MESSAGE)) TRIGGER-PARENTS)

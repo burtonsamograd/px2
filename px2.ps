@@ -37,6 +37,8 @@
                                             ((@ child _parents remove) (@ e target))))))
 
 (defmethod *Class get (name silent)
+  (if (not ((@ this _props has-own-property) name))
+      (throw (new (*Error (+ "Attempt to get a property " name " that does not exist.")))))
   (unless silent
     (trigger this 
              :get this[name]
@@ -49,7 +51,6 @@
       ((@ this set) name value silent)))
       
 (defmethod *Class create (name value silent)
-  ;; TODO: debug only
   (if ((@ this _props has-own-property) name)
       (throw (new (*Error (+ "Attempt to create property " name " that already exists.")))))
 
@@ -64,7 +65,6 @@
   value)
               
 (defmethod *Class set (name value silent)
-  ;; TODO: debug only
   (if (not ((@ this _props has-own-property) name))
       (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
 
@@ -76,8 +76,11 @@
   (setf (getprop this '_props name) value))
 
 (defmethod *Class destroy (name)
-  (delete (getprop this '_props name))
-  (trigger this :destroy (getprop this '_props name)))
+  (let ((value (getprop this '_props name)))
+    (delete (getprop this '_props name))                  ; remove property 
+    (delete (getprop this '_props (+ :change ":" name)))  ; remove change action
+    (delete (getprop this name))                          ; remove named getter/setter
+    (trigger this :destroy value)))
 
 (defmethod *Class trigger (message value target)
   (let ((actions (getprop this '_actions message))
