@@ -34,11 +34,11 @@ Class methods
      this.set(name, value, silent)
 
        Standard setter for Class objects. Sends "change" and
-       "change:$name" events when called.  The value of this.name() is
-       the original value and the event.value (passed as the first
-       part of 'change' trigger handler) is the value that this.name()
-       will be set to after the trigger handler returns, unless silent
-       is true.
+       "change:$name" events when called, unless silent is true.  The
+       value of this.name() is the original value and the event.value
+       (passed as the first part of 'change' trigger handler) is the
+       value that this.name() will be set to after the trigger handler
+       returns.
 
      this.get(name, silent)
 
