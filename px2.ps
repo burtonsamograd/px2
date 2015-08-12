@@ -214,8 +214,7 @@
       ((@ this $el css) (@ options style)))
 
     (when (@ options model)
-      (setf (getprop this (@ options model)) model)
-      (delete (@ options model)))
+      (setf (getprop this (@ options model)) model))
 
     ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
 
