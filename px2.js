@@ -409,8 +409,7 @@ Class.prototype.sort = function (fun, silent) {
                  (SETF (@ THIS $EL) ($ (+ < (@ OPTIONS TAG-NAME) >))))
                (WHEN (@ OPTIONS STYLE) ((@ THIS $EL CSS) (@ OPTIONS STYLE)))
                (WHEN (@ OPTIONS MODEL)
-                 (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL)
-                 (DELETE (@ OPTIONS MODEL)))
+                 (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL))
                ((@ THIS $EL ATTR) CLASS
                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
                (WHEN (@ OPTIONS EVENTS)
@@ -429,7 +428,6 @@ function View(options, model) {
         };
         if (options.model) {
             this[options.model] = model;
-            delete options.model;
         };
         this.$el.attr('class', options.className || options.type);
         if (options.events) {
