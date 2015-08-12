@@ -1,5 +1,4 @@
-/* --eval (DEFCONSTANT +DEBUG+ T)
- *//* (LOAD macros.ps) */
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -410,7 +409,7 @@ Class.prototype.sort = function (fun, silent) {
                  (SETF (@ THIS $EL) ($ (+ < (@ OPTIONS TAG-NAME) >))))
                (WHEN (@ OPTIONS STYLE) ((@ THIS $EL CSS) (@ OPTIONS STYLE)))
                (WHEN (@ OPTIONS MODEL)
-                 (SETF (@ THIS MODEL) (@ OPTIONS MODEL))
+                 (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL)
                  (DELETE (@ OPTIONS MODEL)))
                ((@ THIS $EL ATTR) CLASS
                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
@@ -429,7 +428,7 @@ function View(options, model) {
             this.$el.css(options.style);
         };
         if (options.model) {
-            this.model = options.model;
+            this[options.model] = model;
             delete options.model;
         };
         this.$el.attr('class', options.className || options.type);

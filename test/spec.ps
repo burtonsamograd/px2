@@ -57,9 +57,15 @@
               (done)))
 
         (deftest "should set the model member"
-            (let ((view (new (*View (create "model" 1)))))
+            (let ((view (new (*View (create) 1))))
               (assert-equals  (@ view model) 1
-                              "$el model is not set to 1")
+                              "view.model is not set to 1")
+              (done)))
+
+        (deftest "should set the model name"
+            (let ((view (new (*View (create model "name") 1))))
+              (assert-equals  (@ view name) 1
+                              "view.name is not set to 1")
               (done)))
 
         (deftest "should set the css/style member"

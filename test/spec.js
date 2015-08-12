@@ -56,8 +56,12 @@ describe('Class', function () {
          $el class name is not 'testing')
         (DONE)))
      (DEFTEST should set the model member
-      (LET ((VIEW (NEW (*VIEW (CREATE model 1)))))
-        (ASSERT-EQUALS (@ VIEW MODEL) 1 $el model is not set to 1)
+      (LET ((VIEW (NEW (*VIEW (CREATE) 1))))
+        (ASSERT-EQUALS (@ VIEW MODEL) 1 view.model is not set to 1)
+        (DONE)))
+     (DEFTEST should set the model name
+      (LET ((VIEW (NEW (*VIEW (CREATE MODEL name) 1))))
+        (ASSERT-EQUALS (@ VIEW NAME) 1 view.name is not set to 1)
         (DONE)))
      (DEFTEST should set the css/style member
       (LET ((VIEW (NEW (*VIEW (CREATE STYLE (CREATE font-weight bold))))))
@@ -110,9 +114,16 @@ describe('View', function () {
             return done();
         });
         it('should set the model member', function (done) {
-            var view = new View({ 'model' : 1 });
+            var view = new View({  }, 1);
             if (view.model !== 1) {
-                throw new Error('Expected ' + view.model + ' to equal ' + 1 + ': ' + '$el model is not set to 1');
+                throw new Error('Expected ' + view.model + ' to equal ' + 1 + ': ' + 'view.model is not set to 1');
+            };
+            return done();
+        });
+        it('should set the model name', function (done) {
+            var view = new View({ model : 'name' }, 1);
+            if (view.name !== 1) {
+                throw new Error('Expected ' + view.name + ' to equal ' + 1 + ': ' + 'view.name is not set to 1');
             };
             return done();
         });
