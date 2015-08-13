@@ -89,7 +89,7 @@
         (let ((event (new (*Event (or target this) value)))
               (to-remove (array)))
           (dolist (action actions)
-            (when ((@ action fun call) (@ action self) event)
+            (when (= ((@ action fun call) (@ action self) event) t)
               (setf trigger-parents t))
             (if (@ action once)
                 ((@ to-remove push) action)))

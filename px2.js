@@ -1,4 +1,5 @@
-/* (LOAD macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -160,7 +161,7 @@ Class.prototype.destroy = function (name) {
            (LET ((EVENT (NEW (*EVENT (OR TARGET THIS) VALUE)))
                  (TO-REMOVE (ARRAY)))
              (DOLIST (ACTION ACTIONS)
-               (WHEN ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT)
+               (WHEN (= ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT) T)
                  (SETF TRIGGER-PARENTS T))
                (IF (@ ACTION ONCE)
                    ((@ TO-REMOVE PUSH) ACTION)))
@@ -178,7 +179,7 @@ Class.prototype.trigger = function (message, value, target) {
         var toRemove = [];
         for (var action = null, _js_idx2 = 0; _js_idx2 < actions.length; _js_idx2 += 1) {
             action = actions[_js_idx2];
-            if (action.fun.call(action.self, event)) {
+            if (action.fun.call(action.self, event) === true) {
                 triggerParents = true;
             };
             if (action.once) {

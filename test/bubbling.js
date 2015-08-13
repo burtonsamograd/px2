@@ -79,5 +79,25 @@ module.exports = function (cls) {
 
                expect(parentHandler.called).to.be.true;
         });
+
+        it('should not call the parent event handler when a truthy value is returned from the child event handler', function () {
+               var child = new cls({
+                   init: function () {
+                       this.create('a', 0);
+                   }
+               });
+               var parent = new cls({});
+               parent.add(child);
+
+               parentHandler = sinon.spy(function (e) { });
+               childHandler = sinon.spy(function (e) { return 1; });
+
+               parent.on('change', parentHandler);
+               child.on('change', childHandler);
+
+               child.a(1);
+
+               expect(parentHandler.called).to.be.false;
+        });
     });
 }
