@@ -19,7 +19,8 @@
     ((require "./events.js") *Class)
     ((require "./parents.js") *Class)
     ((require "./bubbling.js") *Class)
-    ((require "./iterators.js") *Class))
+    ((require "./iterators.js") *Class)
+    ((require "./copy.js") *Class))
   
 (defsuite "View"
     ((require "./methods.js") *View)
@@ -31,6 +32,7 @@
     ((require "./parents.js") *View)
     ((require "./bubbling.js") *View)
     ((require "./iterators.js") *View)
+    ((require "./copy.js") *View)
   
     (defsuite "view"
         (deftest "should have a $el member"

@@ -1,4 +1,5 @@
-/* (LOAD test-macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD test-macros.ps) */
 
 /* (CODE-COVERAGE /px2\//) */
 require('blanket')({ 'pattern' : function (filename) {
@@ -18,7 +19,8 @@ var View = require('../px2.js').View;
     ((REQUIRE ./constructor.js) *CLASS) ((REQUIRE ./members.js) *CLASS)
     ((REQUIRE ./defaults.js) *CLASS) ((REQUIRE ./collections.js) *CLASS)
     ((REQUIRE ./events.js) *CLASS) ((REQUIRE ./parents.js) *CLASS)
-    ((REQUIRE ./bubbling.js) *CLASS) ((REQUIRE ./iterators.js) *CLASS)) */
+    ((REQUIRE ./bubbling.js) *CLASS) ((REQUIRE ./iterators.js) *CLASS)
+    ((REQUIRE ./copy.js) *CLASS)) */
 describe('Class', function () {
     require('./methods.js')(Class);
     require('./constructor.js')(Class);
@@ -28,13 +30,15 @@ describe('Class', function () {
     require('./events.js')(Class);
     require('./parents.js')(Class);
     require('./bubbling.js')(Class);
-    return require('./iterators.js')(Class);
+    require('./iterators.js')(Class);
+    return require('./copy.js')(Class);
 });
 /* (DEFSUITE View ((REQUIRE ./methods.js) *VIEW)
     ((REQUIRE ./constructor.js) *VIEW) ((REQUIRE ./members.js) *VIEW)
     ((REQUIRE ./defaults.js) *VIEW) ((REQUIRE ./collections.js) *VIEW)
     ((REQUIRE ./events.js) *VIEW) ((REQUIRE ./parents.js) *VIEW)
     ((REQUIRE ./bubbling.js) *VIEW) ((REQUIRE ./iterators.js) *VIEW)
+    ((REQUIRE ./copy.js) *VIEW)
     (DEFSUITE view
      (DEFTEST should have a $el member
       (LET ((VIEW (NEW (*VIEW))))
@@ -98,6 +102,7 @@ describe('View', function () {
     require('./parents.js')(View);
     require('./bubbling.js')(View);
     require('./iterators.js')(View);
+    require('./copy.js')(View);
     return describe('view', function () {
         it('should have a $el member', function (done) {
             var view = new View();

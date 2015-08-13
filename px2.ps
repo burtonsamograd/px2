@@ -21,6 +21,8 @@
 
   (setf this.length 0)
 
+  (setf this.options options)
+
   (if (@ this init)
       (let ((args ((@ *Array prototype slice call) arguments 1)))
         ((@ this init apply) this args))))
@@ -36,6 +38,24 @@
     ((@ parent once) (+ :change ":" name) (lambda (e)
                                             ((@ child _parents remove) (@ e target))))))
 
+(defmethod *Class copy ()
+  (let ((obj (new (*Class this.options))))
+    ;; copy members
+    (for-in (prop this._props)
+            (if (*Classp (getprop this '_props prop))
+                (obj.create prop
+                            ((@ (getprop this '_props prop) copy)))
+                (obj.create prop
+                      ((@ *JSON* parse) ((@ *JSON* stringify) (getprop this '_props prop))))))
+    ;; copy storage
+    (setf (@ obj _storage)
+          (this.map (lambda (e)
+                     (if (*Classp e)
+                         ((@ e copy))
+                         ((@ *JSON* parse) ((@ *JSON* stringify) e))))))
+    (setf (@ obj length) (@ obj _storage length))
+    obj))
+  
 (defmethod *Class get (name silent)
   (if (not ((@ this _props has-own-property) name))
       (throw (new (*Error (+ "Attempt to get a property " name " that does not exist.")))))
@@ -180,7 +200,7 @@
 
 (defmethod *Class at (index)
   (when (>= index (@ this length))
-    (throw (new (Error (+ "attempt to index (" index
+    (throw (new (*Error (+ "attempt to index (" index
                           ") out of range of object ("
                           (@ this length) ")")))))
   (aref (@ this _storage) index))

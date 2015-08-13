@@ -30,7 +30,7 @@ function Event(target, value) {
                          ((@ THIS CREATE) DEF
                           (GETPROP OPTIONS 'DEFAULTS DEF))))
              (FOR-IN (K OPTIONS) (SETF (GETPROP THIS K) (GETPROP OPTIONS K)))
-             (SETF THIS.LENGTH 0)
+             (SETF THIS.LENGTH 0) (SETF THIS.OPTIONS OPTIONS)
              (IF (@ THIS INIT)
                  (LET ((ARGS ((@ *ARRAY PROTOTYPE SLICE CALL) ARGUMENTS 1)))
                    ((@ THIS INIT APPLY) THIS ARGS)))) */
@@ -48,6 +48,7 @@ function Class(options) {
         this[k] = options[k];
     };
     this.length = 0;
+    this.options = options;
     if (this.init) {
         var args = Array.prototype.slice.call(arguments, 1);
         this.init.apply(this, args);
@@ -72,6 +73,37 @@ function addParent(child, parent, name) {
             return child._parents.remove(e.target);
         });
     };
+};
+/* (DEFMETHOD *CLASS COPY ()
+     (LET ((OBJ (NEW (*CLASS THIS.OPTIONS))))
+       (FOR-IN (PROP THIS._PROPS)
+               (IF (*CLASSP (GETPROP THIS '_PROPS PROP))
+                   (OBJ.CREATE PROP ((@ (GETPROP THIS '_PROPS PROP) COPY)))
+                   (OBJ.CREATE PROP
+                    ((@ *JSON* PARSE)
+                     ((@ *JSON* STRINGIFY) (GETPROP THIS '_PROPS PROP))))))
+       (SETF (@ OBJ _STORAGE)
+               (THIS.MAP
+                (LAMBDA (E)
+                  (IF (*CLASSP E)
+                      ((@ E COPY))
+                      ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) E))))))
+       (SETF (@ OBJ LENGTH) (@ OBJ _STORAGE LENGTH))
+       OBJ)) */
+Class.prototype.copy = function () {
+    var obj = new Class(this.options);
+    for (var prop in this._props) {
+        if (Classp(this._props[prop])) {
+            obj.create(prop, this._props[prop].copy());
+        } else {
+            obj.create(prop, JSON.parse(JSON.stringify(this._props[prop])));
+        };
+    };
+    obj._storage = this.map(function (e) {
+        return Classp(e) ? e.copy() : JSON.parse(JSON.stringify(e));
+    });
+    obj.length = obj._storage.length;
+    return obj;
 };
 /* (DEFMETHOD *CLASS GET (NAME SILENT)
      (IF (NOT ((@ THIS _PROPS HAS-OWN-PROPERTY) NAME))
@@ -346,13 +378,13 @@ Class.prototype.clear = function (silent) {
      (WHEN (>= INDEX (@ THIS LENGTH))
        (THROW
            (NEW
-            (ERROR
+            (*ERROR
              (+ attempt to index ( INDEX ) out of range of object (
                 (@ THIS LENGTH) ))))))
      (AREF (@ THIS _STORAGE) INDEX)) */
 Class.prototype.at = function (index) {
     if (index >= this.length) {
-        throw new error('attempt to index (' + index + ') out of range of object (' + this.length + ')');
+        throw new Error('attempt to index (' + index + ') out of range of object (' + this.length + ')');
     };
     return this._storage[index];
 };
