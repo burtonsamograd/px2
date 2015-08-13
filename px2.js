@@ -412,6 +412,8 @@ Class.prototype.sort = function (fun, silent) {
                  (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL))
                ((@ THIS $EL ATTR) CLASS
                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
+               (UNLESS (@ OPTIONS RENDER)
+                 (SETF (@ THIS RENDER) (LAMBDA () (@ THIS $EL))))
                (WHEN (@ OPTIONS EVENTS)
                  (FOR-IN (EVENT (@ OPTIONS EVENTS))
                          ((@ THIS $EL ON) EVENT
@@ -430,6 +432,11 @@ function View(options, model) {
             this[options.model] = model;
         };
         this.$el.attr('class', options.className || options.type);
+        if (!options.render) {
+            this.render = function () {
+                return this.$el;
+            };
+        };
         if (options.events) {
             for (var event in options.events) {
                 this.$el.on(event, options.events[event].bind(this));

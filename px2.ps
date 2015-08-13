@@ -218,6 +218,10 @@
 
     ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
 
+    (unless (@ options render)
+      (setf (@ this render) (lambda ()
+                              (@ this $el))))
+
     (when (@ options events)
       (for-in (event (@ options events))
               ((@ this $el on) event ((getprop options 'events event 'bind) this))))

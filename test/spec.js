@@ -73,6 +73,12 @@ describe('Class', function () {
              (VIEW (NEW (*VIEW (CREATE EVENTS (CREATE click HANDLER))))))
         ((@ VIEW $EL CLICK))
         (ASSERT (@ HANDLER CALLED-ONCE) event handler was not called.)
+        (DONE)))
+     (DEFTEST should set default render function if none given
+      (LET* ((VIEW (NEW (*VIEW (CREATE EVENTS (CREATE))))))
+        (ASSERT (@ VIEW RENDER) default render function was not created.)
+        (ASSERT ((@ VIEW RENDER))
+                default render function did not return a value.)
         (DONE))))) */
 describe('View', function () {
     require('./methods.js')(View);
@@ -134,7 +140,7 @@ describe('View', function () {
             };
             return done();
         });
-        return it('should set events', function (done) {
+        it('should set events', function (done) {
             var handler = sinon.spy(function () {
                 return null;
             });
@@ -142,6 +148,16 @@ describe('View', function () {
             view.$el.click();
             if (!handler.calledOnce) {
                 throw new Error('event handler was not called.');
+            };
+            return done();
+        });
+        return it('should set default render function if none given', function (done) {
+            var view = new View({ events : {  } });
+            if (!view.render) {
+                throw new Error('default render function was not created.');
+            };
+            if (!view.render()) {
+                throw new Error('default render function did not return a value.');
             };
             return done();
         });
