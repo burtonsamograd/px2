@@ -104,5 +104,30 @@ module.exports = function (cls) {
             c.add(o3);
             expect(c.indexOf(o4)).to.equal(undefined);
         })
+        it('should insert at a given index', function () {
+            var c = new cls();
+            var o1 = new cls();
+            var o2 = new cls();
+            var o3 = new cls();
+            var o4 = new cls();
+            c.add(o1);
+            c.add(o2);
+            c.add(o3);
+            c.insertAt(1, o4);
+            expect(c.indexOf(o4)).to.equal(1);
+            expect(c.indexOf(o1)).to.equal(0);
+            expect(c.indexOf(o2)).to.equal(2);
+            expect(c.indexOf(o3)).to.equal(3);
+        })
+        it('should swap values', function () {
+            var c = new cls();
+            var o1 = new cls();
+            var o2 = new cls();
+            c.add(o1);
+            c.add(o2);
+            c.swap(0, 1);
+            expect(c.indexOf(o1)).to.equal(1);
+            expect(c.indexOf(o2)).to.equal(0);
+        })
     });
 }

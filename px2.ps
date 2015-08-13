@@ -142,6 +142,25 @@
     ((@ this push) obj silent))
   obj)
 
+(defmethod *Class insert-at (i obj silent)
+  ((@ (@ this _storage) splice) i 0 obj)
+  (unless silent
+    (trigger this
+             :add obj
+             :change obj))
+  obj)
+
+(defmethod *Class swap (i j silent)
+  (let ((a (this.at i))
+        (b (this.at j)))
+    (setf this._storage[i] b
+          this._storage[j] a)
+    (unless silent
+      (trigger this
+               :change a
+               :change b))
+    t))
+
 (defmethod *Class remove (obj silent)
   (let ((retval ((@ this _storage remove) obj)))
     (when retval

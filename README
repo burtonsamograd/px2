@@ -51,12 +51,25 @@ Class methods
        collection and sends "add" and "change" messages, with
        event.target being the value, unless silent is true.
        
+     this.insertAt(i, value, silent)
+
+       Add value to the collection at index i. Sends "add" and
+       "change" messages, with event.target being the value, unless
+       silent is true.
+       
      this.push(value, silent)
 
        Add value to the head of the collection and sends "add" and
        "change" messages, with event.target being the value, unless
        silent is true. Much faster than add, since it doesn't have to
        scan the entire storage looking for a duplicate.
+       
+     this.swap(i, j, silent)
+
+       Exhanges two values in the collection and sends two "change"
+       messages, one with the event.target with the object at index i,
+       and the other with the event.target being the object at index
+       j, unless silent is true.
        
      this.remove(value, silent)
 

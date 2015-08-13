@@ -284,6 +284,35 @@ Class.prototype.add = function (obj, silent) {
     };
     return obj;
 };
+/* (DEFMETHOD *CLASS INSERT-AT (I OBJ SILENT)
+     ((@ (@ THIS _STORAGE) SPLICE) I 0 OBJ)
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
+     OBJ) */
+Class.prototype.insertAt = function (i, obj, silent) {
+    this._storage.splice(i, 0, obj);
+    if (!silent) {
+        this.trigger('add', obj);
+        this.trigger('change', obj);
+    };
+    return obj;
+};
+/* (DEFMETHOD *CLASS SWAP (I J SILENT)
+     (LET ((A (THIS.AT I)) (B (THIS.AT J)))
+       (SETF THIS._STORAGE[I] B
+             THIS._STORAGE[J] A)
+       (UNLESS SILENT (TRIGGER THIS CHANGE A CHANGE B))
+       T)) */
+Class.prototype.swap = function (i, j, silent) {
+    var a = this.at(i);
+    var b = this.at(j);
+    this._storage[i] = b;
+    this._storage[j] = a;
+    if (!silent) {
+        this.trigger('change', a);
+        this.trigger('change', b);
+    };
+    return true;
+};
 /* (DEFMETHOD *CLASS REMOVE (OBJ SILENT)
      (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
        (WHEN RETVAL
