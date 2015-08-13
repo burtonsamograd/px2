@@ -219,9 +219,21 @@
     ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
 
     (unless (@ options render)
-      (setf (@ this render) (lambda ()
-                              (@ this $el))))
-
+      (if (@ options render-augmented)
+          (setf (@ this render) (@ options render-augmented))
+          (setf (@ this render) (lambda ()
+                                  (@ this $el)))))
+    (when (@ options render)
+      (unless (@ options render-augmented)
+        (progn
+          (setf (@ this render)
+                (lambda ()
+                  ((@ ((@ this $el children)) detach))
+                  ((@ (@ options original-render) call) this)))
+          (setf (@ options render-augmented) (@ this render))
+          (setf (@ options original-render) (@ options render))
+          (delete (@ options render)))))
+      
     (when (@ options events)
       (for-in (event (@ options events))
               ((@ this $el on) event ((getprop options 'events event 'bind) this))))

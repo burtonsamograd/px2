@@ -75,10 +75,18 @@ describe('Class', function () {
         (ASSERT (@ HANDLER CALLED-ONCE) event handler was not called.)
         (DONE)))
      (DEFTEST should set default render function if none given
-      (LET* ((VIEW (NEW (*VIEW (CREATE EVENTS (CREATE))))))
+      (LET ((VIEW (NEW (*VIEW (CREATE EVENTS (CREATE))))))
         (ASSERT (@ VIEW RENDER) default render function was not created.)
         (ASSERT ((@ VIEW RENDER))
                 default render function did not return a value.)
+        (DONE)))
+     (DEFTEST should only augment the render function once
+      (LET* ((OPTIONS (CREATE RENDER (LAMBDA () THIS.$EL)))
+             (VIEW1 (NEW (*VIEW OPTIONS)))
+             (VIEW2 (NEW (*VIEW OPTIONS))))
+        (ASSERT (@ OPTIONS RENDER-AUGMENTED) render function was augmented.)
+        (ASSERT ((@ VIEW1 RENDER)) render1 function did not return a value.)
+        (ASSERT ((@ VIEW2 RENDER)) render2 function did not return a value.)
         (DONE))))) */
 describe('View', function () {
     require('./methods.js')(View);
@@ -151,13 +159,30 @@ describe('View', function () {
             };
             return done();
         });
-        return it('should set default render function if none given', function (done) {
+        it('should set default render function if none given', function (done) {
             var view = new View({ events : {  } });
             if (!view.render) {
                 throw new Error('default render function was not created.');
             };
             if (!view.render()) {
                 throw new Error('default render function did not return a value.');
+            };
+            return done();
+        });
+        return it('should only augment the render function once', function (done) {
+            var options = { render : function () {
+                return this.$el;
+            } };
+            var view1 = new View(options);
+            var view2 = new View(options);
+            if (!options.renderAugmented) {
+                throw new Error('render function was augmented.');
+            };
+            if (!view1.render()) {
+                throw new Error('render1 function did not return a value.');
+            };
+            if (!view2.render()) {
+                throw new Error('render2 function did not return a value.');
             };
             return done();
         });

@@ -82,9 +82,18 @@
               (done)))
 
         (deftest "should set default render function if none given"
-            (let* ((view (new (*View (create events (create))))))
+            (let ((view (new (*View (create events (create))))))
               (assert (@ view render) "default render function was not created.")
               (assert ((@ view render)) "default render function did not return a value.")
+              (done)))
+
+        (deftest "should only augment the render function once"
+            (let* ((options (create render (lambda () this.$el)))
+                   (view1 (new (*View options)))
+                   (view2 (new (*View options))))
+              (assert (@ options render-augmented) "render function was augmented.")
+              (assert ((@ view1 render)) "render1 function did not return a value.")
+              (assert ((@ view2 render)) "render2 function did not return a value.")
               (done)))
       ))
 

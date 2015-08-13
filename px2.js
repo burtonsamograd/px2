@@ -413,7 +413,19 @@ Class.prototype.sort = function (fun, silent) {
                ((@ THIS $EL ATTR) CLASS
                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
                (UNLESS (@ OPTIONS RENDER)
-                 (SETF (@ THIS RENDER) (LAMBDA () (@ THIS $EL))))
+                 (IF (@ OPTIONS RENDER-AUGMENTED)
+                     (SETF (@ THIS RENDER) (@ OPTIONS RENDER-AUGMENTED))
+                     (SETF (@ THIS RENDER) (LAMBDA () (@ THIS $EL)))))
+               (WHEN (@ OPTIONS RENDER)
+                 (UNLESS (@ OPTIONS RENDER-AUGMENTED)
+                   (PROGN
+                    (SETF (@ THIS RENDER)
+                            (LAMBDA ()
+                              ((@ ((@ THIS $EL CHILDREN)) DETACH))
+                              ((@ (@ OPTIONS ORIGINAL-RENDER) CALL) THIS)))
+                    (SETF (@ OPTIONS RENDER-AUGMENTED) (@ THIS RENDER))
+                    (SETF (@ OPTIONS ORIGINAL-RENDER) (@ OPTIONS RENDER))
+                    (DELETE (@ OPTIONS RENDER)))))
                (WHEN (@ OPTIONS EVENTS)
                  (FOR-IN (EVENT (@ OPTIONS EVENTS))
                          ((@ THIS $EL ON) EVENT
@@ -433,8 +445,23 @@ function View(options, model) {
         };
         this.$el.attr('class', options.className || options.type);
         if (!options.render) {
-            this.render = function () {
-                return this.$el;
+            if (options.renderAugmented) {
+                this.render = options.renderAugmented;
+            } else {
+                this.render = function () {
+                    return this.$el;
+                };
+            };
+        };
+        if (options.render) {
+            if (!options.renderAugmented) {
+                this.render = function () {
+                    this.$el.children().detach();
+                    return options.originalRender.call(this);
+                };
+                options.renderAugmented = this.render;
+                options.originalRender = options.render;
+                delete options.render;
             };
         };
         if (options.events) {
