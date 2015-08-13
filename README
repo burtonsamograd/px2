@@ -31,6 +31,10 @@ Class methods
        this.name(value). Sends 'create' and 'create:$name' messages
        with value as event.value unless silent is true.
 
+     this.copy():
+
+       Returns a deep copy of this.
+
      this.set(name, value, silent)
 
        Standard setter for Class objects. Sends "change" and
