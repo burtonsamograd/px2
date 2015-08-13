@@ -70,6 +70,11 @@ Class methods
        Return an element in the collection located at index.  Throws
        Error if index is out of range.
        
+     this.indexOf(obj)
+
+       Return the integer index of obj in storage (for use with at), or
+       undefined if the object is not in the collection.
+       
      this.length:
 
        The number of elements contained in the object.

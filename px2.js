@@ -327,6 +327,16 @@ Class.prototype.at = function (index) {
     };
     return this._storage[index];
 };
+/* (DEFMETHOD *CLASS INDEX-OF (OBJ)
+     (LET ((I -1))
+       (AND (THIS.FIND (LAMBDA (IT) (INCF I) (= IT OBJ))) I))) */
+Class.prototype.indexOf = function (obj) {
+    var i = -1;
+    return this.find(function (it) {
+        ++i;
+        return it === obj;
+    }) && i;
+};
 /* (DEFMETHOD *CLASS EACH (FUN SELF)
      (LET ((SELF (OR SELF THIS)))
        (DOLIST (ITEM (@ THIS _STORAGE)) ((@ FUN CALL) SELF ITEM)))) */

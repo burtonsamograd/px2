@@ -166,6 +166,13 @@
                           (@ this length) ")")))))
   (aref (@ this _storage) index))
 
+(defmethod *Class index-of (obj)
+  (let ((i -1))
+    (and (this.find (lambda (it)
+                      (incf i)
+                      (= it obj)))
+         i)))
+
 (defmethod *Class each (fun self)
   (let ((self (or self this)))
     (dolist (item (@ this _storage))

@@ -81,5 +81,28 @@ module.exports = function (cls) {
             c.add(o);
             expect(c.at.bind(c, 1)).to.throw(Error);
         });
+        it('should return the correct index of a value if it is in the collection', function () {
+            var c = new cls();
+            var o1 = new cls();
+            var o2 = new cls();
+            var o3 = new cls();
+            c.add(o1);
+            c.add(o2);
+            c.add(o3);
+            expect(c.indexOf(o1)).to.equal(0);
+            expect(c.indexOf(o2)).to.equal(1);
+            expect(c.indexOf(o3)).to.equal(2);
+        })
+        it('should return undefined for the index of a value if it is not in the collection', function () {
+            var c = new cls();
+            var o1 = new cls();
+            var o2 = new cls();
+            var o3 = new cls();
+            var o4 = new cls();
+            c.add(o1);
+            c.add(o2);
+            c.add(o3);
+            expect(c.indexOf(o4)).to.equal(undefined);
+        })
     });
 }
