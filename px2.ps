@@ -146,7 +146,7 @@
 (defmethod *Class push (obj silent)
   (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
       (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
-  (when (*Classp obj silent)
+  (when (*Classp obj)
     ((@ obj _parents push) this))
   ((@ this _storage push) obj)
   (setf (@ this length) (@ this _storage length))
@@ -165,6 +165,8 @@
 
 (defmethod *Class insert-at (i obj silent)
   ((@ (@ this _storage) splice) i 0 obj)
+  (when (*Classp obj)
+    ((@ obj _parents push) this))
   (unless silent
     (trigger this
              :add obj

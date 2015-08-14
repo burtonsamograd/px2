@@ -278,7 +278,7 @@ Class.prototype.once = function (message, fun, self) {
               (*ERROR
                (+ Attempt to push  (@ OBJ TYPE) into container for
                   (@ THIS CONTAINS))))))
-     (WHEN (*CLASSP OBJ SILENT) ((@ OBJ _PARENTS PUSH) THIS))
+     (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
      ((@ THIS _STORAGE PUSH) OBJ)
      (SETF (@ THIS LENGTH) (@ THIS _STORAGE LENGTH))
      (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
@@ -287,7 +287,7 @@ Class.prototype.push = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
     };
-    if (Classp(obj, silent)) {
+    if (Classp(obj)) {
         obj._parents.push(this);
     };
     this._storage.push(obj);
@@ -318,10 +318,14 @@ Class.prototype.add = function (obj, silent) {
 };
 /* (DEFMETHOD *CLASS INSERT-AT (I OBJ SILENT)
      ((@ (@ THIS _STORAGE) SPLICE) I 0 OBJ)
+     (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
      (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
      OBJ) */
 Class.prototype.insertAt = function (i, obj, silent) {
     this._storage.splice(i, 0, obj);
+    if (Classp(obj)) {
+        obj._parents.push(this);
+    };
     if (!silent) {
         this.trigger('add', obj);
         this.trigger('change', obj);
