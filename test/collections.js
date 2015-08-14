@@ -118,6 +118,7 @@ module.exports = function (cls) {
             expect(c.indexOf(o1)).to.equal(0);
             expect(c.indexOf(o2)).to.equal(2);
             expect(c.indexOf(o3)).to.equal(3);
+            expect(c.length).to.equal(4);
         })
         it('should swap values', function () {
             var c = new cls();

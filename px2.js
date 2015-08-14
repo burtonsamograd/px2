@@ -322,11 +322,13 @@ Class.prototype.add = function (obj, silent) {
 };
 /* (DEFMETHOD *CLASS INSERT-AT (I OBJ SILENT)
      ((@ (@ THIS _STORAGE) SPLICE) I 0 OBJ)
+     (INCF THIS.LENGTH)
      (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
      (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
      OBJ) */
 Class.prototype.insertAt = function (i, obj, silent) {
     this._storage.splice(i, 0, obj);
+    ++this.length;
     if (Classp(obj)) {
         obj._parents.push(this);
     };

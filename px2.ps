@@ -169,6 +169,7 @@
 
 (defmethod *Class insert-at (i obj silent)
   ((@ (@ this _storage) splice) i 0 obj)
+  (incf this.length)
   (when (*Classp obj)
     ((@ obj _parents push) this))
   (unless silent
