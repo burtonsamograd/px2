@@ -76,11 +76,14 @@ function addParent(child, parent, name) {
 /* (DEFMETHOD *CLASS COPY ()
      (LET ((OBJ (NEW (*CLASS THIS.OPTIONS))))
        (FOR-IN (PROP THIS._PROPS) (OBJ.DESTROY PROP T)
-               (IF (*CLASSP (GETPROP THIS '_PROPS PROP))
-                   (OBJ.CREATE PROP ((@ (GETPROP THIS '_PROPS PROP) COPY)))
-                   (OBJ.CREATE PROP
-                    ((@ *JSON* PARSE)
-                     ((@ *JSON* STRINGIFY) (GETPROP THIS '_PROPS PROP))))))
+               (LET ((THIS-PROP (GETPROP THIS '_PROPS PROP)))
+                 (IF (*CLASSP THIS-PROP)
+                     (OBJ.CREATE PROP ((@ (GETPROP THIS '_PROPS PROP) COPY)))
+                     (OBJ.CREATE PROP
+                      (IF (OR ((@ *ARRAY IS-ARRAY) THIS-PROP)
+                              (= (TYPEOF THIS-PROP) 'OBJECT))
+                          ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) THIS-PROP))
+                          THIS-PROP)))))
        (SETF (@ OBJ _STORAGE)
                (THIS.MAP
                 (LAMBDA (E)
@@ -93,10 +96,11 @@ Class.prototype.copy = function () {
     var obj = new Class(this.options);
     for (var prop in this._props) {
         obj.destroy(prop, true);
-        if (Classp(this._props[prop])) {
+        var thisProp = this._props[prop];
+        if (Classp(thisProp)) {
             obj.create(prop, this._props[prop].copy());
         } else {
-            obj.create(prop, JSON.parse(JSON.stringify(this._props[prop])));
+            obj.create(prop, Array.isArray(thisProp) || typeof thisProp === 'object' ? JSON.parse(JSON.stringify(thisProp)) : thisProp);
         };
     };
     obj._storage = this.map(function (e) {
