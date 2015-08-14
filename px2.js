@@ -358,12 +358,16 @@ Class.prototype.swap = function (i, j, silent) {
      (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
        (WHEN RETVAL
          (DECF (@ THIS LENGTH))
+         (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS REMOVE) THIS))
          (UNLESS SILENT (TRIGGER THIS REMOVE OBJ MODIFIED (ARRAY OBJ))))
        RETVAL)) */
 Class.prototype.remove = function (obj, silent) {
     var retval = this._storage.remove(obj);
     if (retval) {
         --this.length;
+        if (Classp(obj)) {
+            obj._parents.remove(this);
+        };
         if (!silent) {
             this.trigger('remove', obj);
             this.trigger('modified', [obj]);
@@ -375,11 +379,19 @@ Class.prototype.remove = function (obj, silent) {
      (LET ((OLD-STORAGE (@ THIS _STORAGE)))
        (SETF (@ THIS _STORAGE) (ARRAY)
              (@ THIS LENGTH) 0)
+       (DOLIST (THING OLD-STORAGE)
+         (WHEN (*CLASSP THING) ((@ THING _PARENTS REMOVE) THIS)))
        (UNLESS SILENT (TRIGGER THIS CLEAR THIS MODIFIED OLD-STORAGE)))) */
 Class.prototype.clear = function (silent) {
     var oldStorage = this._storage;
     this._storage = [];
     this.length = 0;
+    for (var thing = null, _js_idx8 = 0; _js_idx8 < oldStorage.length; _js_idx8 += 1) {
+        thing = oldStorage[_js_idx8];
+        if (Classp(thing)) {
+            thing._parents.remove(this);
+        };
+    };
     if (!silent) {
         this.trigger('clear', this);
         return this.trigger('modified', oldStorage);
@@ -413,10 +425,10 @@ Class.prototype.indexOf = function (obj) {
      (LET ((SELF (OR SELF THIS)))
        (DOLIST (ITEM (@ THIS _STORAGE)) ((@ FUN CALL) SELF ITEM)))) */
 Class.prototype.each = function (fun, self) {
-    var self8 = self || this;
-    for (var item = null, _js_arrvar10 = this._storage, _js_idx9 = 0; _js_idx9 < _js_arrvar10.length; _js_idx9 += 1) {
-        item = _js_arrvar10[_js_idx9];
-        fun.call(self8, item);
+    var self9 = self || this;
+    for (var item = null, _js_arrvar11 = this._storage, _js_idx10 = 0; _js_idx10 < _js_arrvar11.length; _js_idx10 += 1) {
+        item = _js_arrvar11[_js_idx10];
+        fun.call(self9, item);
     };
 };
 /* (DEFMETHOD *CLASS MAP (FUN SELF)
@@ -426,10 +438,10 @@ Class.prototype.each = function (fun, self) {
        RESULT)) */
 Class.prototype.map = function (fun, self) {
     var result = [];
-    var self11 = self || this;
-    for (var item = null, _js_arrvar13 = this._storage, _js_idx12 = 0; _js_idx12 < _js_arrvar13.length; _js_idx12 += 1) {
-        item = _js_arrvar13[_js_idx12];
-        result.push(fun.call(self11, item));
+    var self12 = self || this;
+    for (var item = null, _js_arrvar14 = this._storage, _js_idx13 = 0; _js_idx13 < _js_arrvar14.length; _js_idx13 += 1) {
+        item = _js_arrvar14[_js_idx13];
+        result.push(fun.call(self12, item));
     };
     return result;
 };
@@ -440,10 +452,10 @@ Class.prototype.map = function (fun, self) {
        RESULT)) */
 Class.prototype.filter = function (fun, self) {
     var result = [];
-    var self14 = self || this;
-    for (var item = null, _js_arrvar16 = this._storage, _js_idx15 = 0; _js_idx15 < _js_arrvar16.length; _js_idx15 += 1) {
-        item = _js_arrvar16[_js_idx15];
-        if (fun.call(self14, item)) {
+    var self15 = self || this;
+    for (var item = null, _js_arrvar17 = this._storage, _js_idx16 = 0; _js_idx16 < _js_arrvar17.length; _js_idx16 += 1) {
+        item = _js_arrvar17[_js_idx16];
+        if (fun.call(self15, item)) {
             result.push(item);
         };
     };
@@ -458,15 +470,15 @@ Class.prototype.filter = function (fun, self) {
            (WHEN (= FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM))))) */
 Class.prototype.find = function (funOrObj, self) {
     if (typeof funOrObj === 'function') {
-        for (var item = null, _js_arrvar20 = this._storage, _js_idx19 = 0; _js_idx19 < _js_arrvar20.length; _js_idx19 += 1) {
-            item = _js_arrvar20[_js_idx19];
+        for (var item = null, _js_arrvar21 = this._storage, _js_idx20 = 0; _js_idx20 < _js_arrvar21.length; _js_idx20 += 1) {
+            item = _js_arrvar21[_js_idx20];
             if (funOrObj.call(self || this, item)) {
                 return item;
             };
         };
     } else {
-        for (var item = null, _js_arrvar22 = this._storage, _js_idx21 = 0; _js_idx21 < _js_arrvar22.length; _js_idx21 += 1) {
-            item = _js_arrvar22[_js_idx21];
+        for (var item = null, _js_arrvar23 = this._storage, _js_idx22 = 0; _js_idx22 < _js_arrvar23.length; _js_idx22 += 1) {
+            item = _js_arrvar23[_js_idx22];
             if (funOrObj === item) {
                 return item;
             };

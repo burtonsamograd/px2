@@ -192,6 +192,8 @@
   (let ((retval ((@ this _storage remove) obj)))
     (when retval
       (decf (@ this length))
+      (when (*Classp obj)
+        ((@ obj _parents remove) this))
       (unless silent
         (trigger this
                  :remove obj
@@ -202,6 +204,9 @@
   (let ((old-storage (@ this _storage)))
     (setf (@ this _storage) (array)
           (@ this length) 0)
+    (dolist (thing old-storage)
+      (when (*Classp thing)
+        ((@ thing _parents remove) this)))
     (unless silent
       (trigger this
                :clear this
