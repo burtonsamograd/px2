@@ -52,35 +52,36 @@ Class methods
      this.add(value, silent)
 
        Add value to the collection if it is not already in the
-       collection and sends "add" and "change" messages, with
-       event.target being the value, unless silent is true.
+       collection and sends "add" and "modified" (with the value
+       added) messages, with event.target being the value, unless
+       silent is true.
        
      this.insertAt(i, value, silent)
 
        Add value to the collection at index i. Sends "add" and
-       "change" messages, with event.target being the value, unless
-       silent is true.
+       "modified" messages (with the value added), with event.target
+       being the value, unless silent is true.
        
      this.push(value, silent)
 
        Add value to the head of the collection and sends "add" and
-       "change" messages, with event.target being the value, unless
-       silent is true. Much faster than add, since it doesn't have to
-       scan the entire storage looking for a duplicate.
+       "modified" (with the value added) messages, with event.target
+       being the value, unless silent is true. Much faster than add,
+       since it doesn't have to scan the entire storage looking for a
+       duplicate.
        
      this.swap(i, j, silent)
 
-       Exhanges two values in the collection and sends two "change"
-       messages, one with the event.target with the object at index i,
-       and the other with the event.target being the object at index
-       j, unless silent is true.
+       Exhanges two values in the collection and sends a "modified"
+       message with the value being the objects in an array, unless
+       silent is true.
        
      this.remove(value, silent)
 
        Remove value from the collection if it has been added to it
-       using add/push and sends "remove" and "change" messages if it
-       was removed, unless silent is true. Returns true if the object
-       was removed, false otherwise.
+       using add/push and sends "remove" and "modified" (with the
+       value removed) messages if it was removed, unless silent is
+       true. Returns true if the object was removed, false otherwise.
 
      this.at(index)
 
@@ -99,7 +100,8 @@ Class methods
      this.clear(silent)
 
        Remove all items from the collection and sets length to 0;
-       sends "change" and "clear" message, unles silent is true.
+       sends "modified" message with all items from storage before
+       clearing, unles silent is true.
 
      this.on(message, function (event) { ... }, self)
 
@@ -143,8 +145,8 @@ Class methods
      this.sort(fun, silent)
 
         Destructively sorts the internal storage array using fun,
-        returns 'this' so you can chain with map. Sends 'change' and
-        'sorted' events, unless silent is true.
+        returns 'this' so you can chain with map. Sends 'modified'
+        event with the sorted array, unless silent is true.
 
 Events
 ------

@@ -101,13 +101,13 @@ module.exports = function (cls) {
             expect(handler.called).to.be.false;
         });
         it('should not call a handler when silent is given to add', function () {
-            obj.on('change', handler);
+            obj.on('modified', handler);
             obj.add(1, true);
             obj.add(2, true);
             expect(handler.called).to.be.false;
         });
         it('should not call a handler when silent is given to remove', function () {
-            obj.on('change', handler);
+            obj.on('modified', handler);
             obj.add(1);
             obj.add(2);
             obj.remove(2, true);
@@ -115,13 +115,13 @@ module.exports = function (cls) {
             expect(handler.calledTwice).to.be.true;
         });
         it('should not call a handler when silent is given to push', function () {
-            obj.on('change', handler);
+            obj.on('modified', handler);
             obj.push(1, true);
             obj.push(2, true);
             expect(handler.called).to.be.false;
         });
         it('should not call a handler when silent is given to clear', function () {
-            obj.on('change', handler);
+            obj.on('modified', handler);
             obj.push(1);
             obj.push(2);
             obj.clear(true);
@@ -130,10 +130,9 @@ module.exports = function (cls) {
         it('should call a handler when calling sort', function () {
             obj.push(1);
             obj.push(2);
-            obj.on('change', handler);
-            obj.on('sorted', handler);
+            obj.on('modified', handler);
             obj.sort(function (a, b) { return a - b; });
-            expect(handler.calledTwice).to.be.true;
+            expect(handler.calledOnce).to.be.true;
         });
     });
 }

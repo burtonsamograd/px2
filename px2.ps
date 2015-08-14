@@ -157,7 +157,7 @@
   (unless silent
     (trigger this
              :add obj
-             :change obj))
+             :modified (array obj)))
   obj)
 
 (defmethod *Class add (obj silent)
@@ -174,7 +174,7 @@
   (unless silent
     (trigger this
              :add obj
-             :change obj))
+             :modified (array obj)))
   obj)
 
 (defmethod *Class swap (i j silent)
@@ -184,8 +184,7 @@
           this._storage[j] a)
     (unless silent
       (trigger this
-               :change a
-               :change b))
+               :modified (array a b)))
     t))
 
 (defmethod *Class remove (obj silent)
@@ -195,15 +194,17 @@
       (unless silent
         (trigger this
                  :remove obj
-                 :change obj)))
+                 :modified (array obj))))
     retval))
 
 (defmethod *Class clear (silent)
-  (setf (@ this _storage) (array)
-        (@ this length) 0)
-  (unless silent
-    (trigger this :clear
-             this :change)))
+  (let ((old-storage (@ this _storage)))
+    (setf (@ this _storage) (array)
+          (@ this length) 0)
+    (unless silent
+      (trigger this
+               :clear this
+               :modified old-storage))))
 
 (defmethod *Class at (index)
   (when (>= index (@ this length))
@@ -252,8 +253,7 @@
   ((@ this _storage sort) fun)
   (unless silent
     (trigger this
-             :change this
-             :sorted this))
+             :modified (@ this _storage)))
   this)
 
 (defclass *View (*Class) (options model)

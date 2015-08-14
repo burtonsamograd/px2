@@ -285,7 +285,7 @@ Class.prototype.once = function (message, fun, self) {
      (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
      ((@ THIS _STORAGE PUSH) OBJ)
      (SETF (@ THIS LENGTH) (@ THIS _STORAGE LENGTH))
-     (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
      OBJ) */
 Class.prototype.push = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
@@ -298,7 +298,7 @@ Class.prototype.push = function (obj, silent) {
     this.length = this._storage.length;
     if (!silent) {
         this.trigger('add', obj);
-        this.trigger('change', obj);
+        this.trigger('modified', [obj]);
     };
     return obj;
 };
@@ -323,7 +323,7 @@ Class.prototype.add = function (obj, silent) {
 /* (DEFMETHOD *CLASS INSERT-AT (I OBJ SILENT)
      ((@ (@ THIS _STORAGE) SPLICE) I 0 OBJ)
      (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
-     (UNLESS SILENT (TRIGGER THIS ADD OBJ CHANGE OBJ))
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
      OBJ) */
 Class.prototype.insertAt = function (i, obj, silent) {
     this._storage.splice(i, 0, obj);
@@ -332,7 +332,7 @@ Class.prototype.insertAt = function (i, obj, silent) {
     };
     if (!silent) {
         this.trigger('add', obj);
-        this.trigger('change', obj);
+        this.trigger('modified', [obj]);
     };
     return obj;
 };
@@ -340,7 +340,7 @@ Class.prototype.insertAt = function (i, obj, silent) {
      (LET ((A (THIS.AT I)) (B (THIS.AT J)))
        (SETF THIS._STORAGE[I] B
              THIS._STORAGE[J] A)
-       (UNLESS SILENT (TRIGGER THIS CHANGE A CHANGE B))
+       (UNLESS SILENT (TRIGGER THIS MODIFIED (ARRAY A B)))
        T)) */
 Class.prototype.swap = function (i, j, silent) {
     var a = this.at(i);
@@ -348,8 +348,7 @@ Class.prototype.swap = function (i, j, silent) {
     this._storage[i] = b;
     this._storage[j] = a;
     if (!silent) {
-        this.trigger('change', a);
-        this.trigger('change', b);
+        this.trigger('modified', [a, b]);
     };
     return true;
 };
@@ -357,7 +356,7 @@ Class.prototype.swap = function (i, j, silent) {
      (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
        (WHEN RETVAL
          (DECF (@ THIS LENGTH))
-         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ CHANGE OBJ)))
+         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ MODIFIED (ARRAY OBJ))))
        RETVAL)) */
 Class.prototype.remove = function (obj, silent) {
     var retval = this._storage.remove(obj);
@@ -365,21 +364,23 @@ Class.prototype.remove = function (obj, silent) {
         --this.length;
         if (!silent) {
             this.trigger('remove', obj);
-            this.trigger('change', obj);
+            this.trigger('modified', [obj]);
         };
     };
     return retval;
 };
 /* (DEFMETHOD *CLASS CLEAR (SILENT)
-     (SETF (@ THIS _STORAGE) (ARRAY)
-           (@ THIS LENGTH) 0)
-     (UNLESS SILENT (TRIGGER THIS CLEAR THIS CHANGE))) */
+     (LET ((OLD-STORAGE (@ THIS _STORAGE)))
+       (SETF (@ THIS _STORAGE) (ARRAY)
+             (@ THIS LENGTH) 0)
+       (UNLESS SILENT (TRIGGER THIS CLEAR THIS MODIFIED OLD-STORAGE)))) */
 Class.prototype.clear = function (silent) {
+    var oldStorage = this._storage;
     this._storage = [];
     this.length = 0;
     if (!silent) {
         this.trigger('clear', this);
-        return this.trigger('change', null);
+        return this.trigger('modified', oldStorage);
     };
 };
 /* (DEFMETHOD *CLASS AT (INDEX)
@@ -472,13 +473,12 @@ Class.prototype.find = function (funOrObj, self) {
 };
 /* (DEFMETHOD *CLASS SORT (FUN SILENT)
      ((@ THIS _STORAGE SORT) FUN)
-     (UNLESS SILENT (TRIGGER THIS CHANGE THIS SORTED THIS))
+     (UNLESS SILENT (TRIGGER THIS MODIFIED (@ THIS _STORAGE)))
      THIS) */
 Class.prototype.sort = function (fun, silent) {
     this._storage.sort(fun);
     if (!silent) {
-        this.trigger('change', this);
-        this.trigger('sorted', this);
+        this.trigger('modified', this._storage);
     };
     return this;
 };
