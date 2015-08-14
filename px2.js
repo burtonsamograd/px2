@@ -446,17 +446,18 @@ Class.prototype.filter = function (fun, self) {
     };
     return result;
 };
-/* (DEFMETHOD *CLASS FIND (FUN-OR-OBJ)
+/* (DEFMETHOD *CLASS FIND (FUN-OR-OBJ SELF)
      (IF (= (TYPEOF FUN-OR-OBJ) FUNCTION)
          (DOLIST (ITEM (@ THIS _STORAGE))
-           (WHEN (FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM)))
+           (WHEN ((@ FUN-OR-OBJ CALL) (OR SELF THIS) ITEM)
+             (RETURN-FROM FIND ITEM)))
          (DOLIST (ITEM (@ THIS _STORAGE))
            (WHEN (= FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM))))) */
-Class.prototype.find = function (funOrObj) {
+Class.prototype.find = function (funOrObj, self) {
     if (typeof funOrObj === 'function') {
         for (var item = null, _js_arrvar20 = this._storage, _js_idx19 = 0; _js_idx19 < _js_arrvar20.length; _js_idx19 += 1) {
             item = _js_arrvar20[_js_idx19];
-            if (funOrObj(item)) {
+            if (funOrObj.call(self || this, item)) {
                 return item;
             };
         };

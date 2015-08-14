@@ -239,10 +239,10 @@
         ((@ result push) item)))
     result))
 
-(defmethod *Class find (fun-or-obj)
+(defmethod *Class find (fun-or-obj self)
   (if (= (typeof fun-or-obj) :function)
       (dolist (item (@ this _storage))
-        (when (fun-or-obj item)
+        (when ((@ fun-or-obj call) (or self this) item)
           (return-from find item)))
       (dolist (item (@ this _storage))
           (when (= fun-or-obj item)
