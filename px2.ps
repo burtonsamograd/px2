@@ -42,6 +42,7 @@
   (let ((obj (new (*Class this.options))))
     ;; copy members
     (for-in (prop this._props)
+            (obj.destroy prop t)
             (if (*Classp (getprop this '_props prop))
                 (obj.create prop
                             ((@ (getprop this '_props prop) copy)))

@@ -1,5 +1,4 @@
-/* --eval (DEFCONSTANT +DEBUG+ T)
- *//* (LOAD macros.ps) */
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -76,7 +75,7 @@ function addParent(child, parent, name) {
 };
 /* (DEFMETHOD *CLASS COPY ()
      (LET ((OBJ (NEW (*CLASS THIS.OPTIONS))))
-       (FOR-IN (PROP THIS._PROPS)
+       (FOR-IN (PROP THIS._PROPS) (OBJ.DESTROY PROP T)
                (IF (*CLASSP (GETPROP THIS '_PROPS PROP))
                    (OBJ.CREATE PROP ((@ (GETPROP THIS '_PROPS PROP) COPY)))
                    (OBJ.CREATE PROP
@@ -93,6 +92,7 @@ function addParent(child, parent, name) {
 Class.prototype.copy = function () {
     var obj = new Class(this.options);
     for (var prop in this._props) {
+        obj.destroy(prop, true);
         if (Classp(this._props[prop])) {
             obj.create(prop, this._props[prop].copy());
         } else {
