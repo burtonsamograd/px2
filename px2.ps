@@ -55,8 +55,19 @@
     ;; copy actions
     (setf (@ obj _actions) (create))
     (for-in (action (@ this _actions))
-            (setf (getprop (@ obj _actions) action)
-                  (getprop (@ this _actions) action)))
+            (let ((old-actions (getprop this '_actions action))
+                  (new-actions (array)))
+              (dolist (old-action old-actions)
+                (if (= (@ old-action self) this)
+                    ((@ new-actions push)
+                        (create :message (@ old-action message)
+                                :fun (@ old-action fun)
+                                :self obj))
+                    ((@ new-actions push)
+                        (create :message (@ old-action message)
+                                :fun (@ old-action fun)
+                                :self (@ old-action self)))))
+              (setf (getprop obj '_actions action) new-actions)))
     
     ;; copy storage
     (let ((new-storage 
