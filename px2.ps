@@ -52,6 +52,12 @@
                                       (= (typeof this-prop) 'object))
                                   ((@ *JSON* parse) ((@ *JSON* stringify) this-prop))
                                   this-prop)))))
+    ;; copy actions
+    (setf (@ obj _actions) (create))
+    (for-in (action (@ this _actions))
+            (setf (getprop (@ obj _actions) action)
+                  (getprop (@ this _actions) action)))
+    
     ;; copy storage
     (let ((new-storage 
            (this.map (lambda (e)
