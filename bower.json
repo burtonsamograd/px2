@@ -1,7 +1,7 @@
 {
   "name": "px2",
   "main": "px2.js",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "homepage": "https://github.com/burtonsamograd/px2",
   "authors": [
     "Burton Samograd <burton.samograd@gmail.com>"
