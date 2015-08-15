@@ -93,12 +93,13 @@
   (if (not ((@ this _props has-own-property) name))
       (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
 
-  (unless silent
-    (trigger this 
-             :change value
-             (+ :change ":" name) value))
-  (add-parent value this name)
-  (setf (getprop this '_props name) value))
+  (let ((old-value (getprop this '_props name)))
+    (setf (getprop this '_props name) value)
+    (unless silent
+      (trigger this 
+               :change old-value
+               (+ :change ":" name) old-value))
+    (add-parent value this name)))
 
 (defmethod *Class destroy (name)
   (let ((value (getprop this '_props name)))

@@ -164,19 +164,22 @@ Class.prototype.create = function (name, value, silent) {
              (NEW
               (*ERROR
                (+ Attempt to set a property  NAME  that does not exist.)))))
-     (UNLESS SILENT (TRIGGER THIS CHANGE VALUE (+ CHANGE : NAME) VALUE))
-     (ADD-PARENT VALUE THIS NAME)
-     (SETF (GETPROP THIS '_PROPS NAME) VALUE)) */
+     (LET ((OLD-VALUE (GETPROP THIS '_PROPS NAME)))
+       (SETF (GETPROP THIS '_PROPS NAME) VALUE)
+       (UNLESS SILENT
+         (TRIGGER THIS CHANGE OLD-VALUE (+ CHANGE : NAME) OLD-VALUE))
+       (ADD-PARENT VALUE THIS NAME))) */
 Class.prototype.set = function (name, value, silent) {
     if (!this._props.hasOwnProperty(name)) {
         throw new Error('Attempt to set a property ' + name + ' that does not exist.');
     };
+    var oldValue = this._props[name];
+    this._props[name] = value;
     if (!silent) {
-        this.trigger('change', value);
-        this.trigger('change' + ':' + name, value);
+        this.trigger('change', oldValue);
+        this.trigger('change' + ':' + name, oldValue);
     };
-    addParent(value, this, name);
-    return this._props[name] = value;
+    return addParent(value, this, name);
 };
 /* (DEFMETHOD *CLASS DESTROY (NAME)
      (LET ((VALUE (GETPROP THIS '_PROPS NAME)))

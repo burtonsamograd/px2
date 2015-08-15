@@ -21,7 +21,7 @@ module.exports = function (cls) {
             handler = sinon.spy(function (e) {
                 expect(e).to.be.an.object;
                 expect(e.target).to.eql(obj);
-                expect(e.value).to.eql(obj.a()+1);
+                expect(e.value).to.eql(obj.a()-1);
             });
         });
         it('should pass the object as the event target and the correct event value', function () {
