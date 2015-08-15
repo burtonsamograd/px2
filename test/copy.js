@@ -15,11 +15,17 @@ module.exports = function (cls) {
             o2.create('z', 1);
             o.add(1);
             o.add(o2);
+            var handler = sinon.spy(function () {});
+            o.on('x', handler, {});
+            o.on('y', handler);
             var o3 = o.copy();
             expect(o3.x()).to.equal(1);
             expect(o3.y().z()).to.equal(1);
             expect(o3.at(0)).to.equal(1);
             expect(o3.at(1).z()).to.equal(1);
+            expect(o3.trigger.bind(o3, 'x')).to.not.throw(Error);
+            expect(o3.trigger.bind(o3, 'y')).to.not.throw(Error);
+            expect(handler.calledTwice).to.be.true;
         });
     });
 }

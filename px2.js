@@ -84,13 +84,27 @@ function addParent(child, parent, name) {
                               (= (TYPEOF THIS-PROP) 'OBJECT))
                           ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) THIS-PROP))
                           THIS-PROP)))))
-       (SETF (@ OBJ _STORAGE)
-               (THIS.MAP
-                (LAMBDA (E)
-                  (IF (*CLASSP E)
-                      ((@ E COPY))
-                      ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) E))))))
-       (SETF (@ OBJ LENGTH) (@ OBJ _STORAGE LENGTH))
+       (SETF (@ OBJ _ACTIONS) (CREATE))
+       (FOR-IN (ACTION (@ THIS _ACTIONS))
+               (LET ((OLD-ACTIONS (GETPROP THIS '_ACTIONS ACTION))
+                     (NEW-ACTIONS (ARRAY)))
+                 (DOLIST (OLD-ACTION OLD-ACTIONS)
+                   (IF (= (@ OLD-ACTION SELF) THIS)
+                       ((@ NEW-ACTIONS PUSH)
+                        (CREATE MESSAGE (@ OLD-ACTION MESSAGE) FUN
+                         (@ OLD-ACTION FUN) SELF OBJ))
+                       ((@ NEW-ACTIONS PUSH)
+                        (CREATE MESSAGE (@ OLD-ACTION MESSAGE) FUN
+                         (@ OLD-ACTION FUN) SELF (@ OLD-ACTION SELF)))))
+                 (SETF (GETPROP OBJ '_ACTIONS ACTION) NEW-ACTIONS)))
+       (LET ((NEW-STORAGE
+              (THIS.MAP
+               (LAMBDA (E)
+                 (IF (*CLASSP E)
+                     ((@ E COPY))
+                     ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) E)))))))
+         (OBJ.CLEAR T)
+         ((@ NEW-STORAGE FOR-EACH) (LAMBDA (E) (OBJ.PUSH E T))))
        OBJ)) */
 Class.prototype.copy = function () {
     var obj = new Class(this.options);
@@ -103,10 +117,33 @@ Class.prototype.copy = function () {
             obj.create(prop, Array.isArray(thisProp) || typeof thisProp === 'object' ? JSON.parse(JSON.stringify(thisProp)) : thisProp);
         };
     };
-    obj._storage = this.map(function (e) {
+    obj._actions = {  };
+    for (var action in this._actions) {
+        var oldActions = this._actions[action];
+        var newActions = [];
+        for (var oldAction = null, _js_idx2 = 0; _js_idx2 < oldActions.length; _js_idx2 += 1) {
+            oldAction = oldActions[_js_idx2];
+            if (oldAction.self === this) {
+                newActions.push({ 'message' : oldAction.message,
+                                  'fun' : oldAction.fun,
+                                  'self' : obj
+                                });
+            } else {
+                newActions.push({ 'message' : oldAction.message,
+                                  'fun' : oldAction.fun,
+                                  'self' : oldAction.self
+                                });
+            };
+        };
+        obj._actions[action] = newActions;
+    };
+    var newStorage = this.map(function (e) {
         return Classp(e) ? e.copy() : JSON.parse(JSON.stringify(e));
     });
-    obj.length = obj._storage.length;
+    obj.clear(true);
+    newStorage.forEach(function (e) {
+        return obj.push(e, true);
+    });
     return obj;
 };
 /* (DEFMETHOD *CLASS GET (NAME SILENT)
