@@ -521,6 +521,21 @@ Class.prototype.sort = function (fun, silent) {
                     (SETF (@ OPTIONS RENDER-AUGMENTED) (@ THIS RENDER))
                     (SETF (@ OPTIONS ORIGINAL-RENDER) (@ OPTIONS RENDER))
                     (DELETE (@ OPTIONS RENDER)))))
+               (UNLESS (@ OPTIONS INIT)
+                 (IF (@ OPTIONS INIT-AUGMENTED)
+                     (SETF (@ THIS INIT) (@ OPTIONS INIT-AUGMENTED))
+                     (SETF (@ THIS INIT) (LAMBDA () (THIS.RENDER)))))
+               (WHEN (@ OPTIONS INIT)
+                 (UNLESS (@ OPTIONS INIT-AUGMENTED)
+                   (PROGN
+                    (SETF (@ THIS INIT)
+                            (LAMBDA ()
+                              ((@ (@ OPTIONS ORIGINAL-INIT) APPLY) THIS
+                               ARGUMENTS)
+                              ((@ THIS RENDER))))
+                    (SETF (@ OPTIONS INIT-AUGMENTED) (@ THIS INIT))
+                    (SETF (@ OPTIONS ORIGINAL-INIT) (@ OPTIONS INIT))
+                    (DELETE (@ OPTIONS INIT)))))
                (WHEN (@ OPTIONS EVENTS)
                  (FOR-IN (EVENT (@ OPTIONS EVENTS))
                          ((@ THIS $EL ON) EVENT
@@ -557,6 +572,26 @@ function View(options, model) {
                 options.renderAugmented = this.render;
                 options.originalRender = options.render;
                 delete options.render;
+            };
+        };
+        if (!options.init) {
+            if (options.initAugmented) {
+                this.init = options.initAugmented;
+            } else {
+                this.init = function () {
+                    return this.render();
+                };
+            };
+        };
+        if (options.init) {
+            if (!options.initAugmented) {
+                this.init = function () {
+                    options.originalInit.apply(this, arguments);
+                    return this.render();
+                };
+                options.initAugmented = this.init;
+                options.originalInit = options.init;
+                delete options.init;
             };
         };
         if (options.events) {

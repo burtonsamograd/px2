@@ -8,7 +8,7 @@ module.exports = function (cls) {
             var obj = new cls({
                 init: init
             });
-            expect(obj.init.calledOnce).to.be.true;
+            expect(init.calledOnce).to.be.true;
         });
     });
 }
