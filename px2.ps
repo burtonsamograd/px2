@@ -53,12 +53,14 @@
                                   ((@ *JSON* parse) ((@ *JSON* stringify) this-prop))
                                   this-prop)))))
     ;; copy storage
-    (setf (@ obj _storage)
-          (this.map (lambda (e)
-                     (if (*Classp e)
-                         ((@ e copy))
-                         ((@ *JSON* parse) ((@ *JSON* stringify) e))))))
-    (setf (@ obj length) (@ obj _storage length))
+    (let ((new-storage 
+           (this.map (lambda (e)
+                       (if (*Classp e)
+                           ((@ e copy))
+                           ((@ *JSON* parse) ((@ *JSON* stringify) e)))))))
+      (obj.clear t)
+      ((@ new-storage for-each) (lambda (e)
+                                  (obj.push e t))))
     obj))
   
 (defmethod *Class get (name silent)
