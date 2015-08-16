@@ -62,15 +62,25 @@ function Classp(value) {
 };
 /* (DEFUN ADD-PARENT (CHILD PARENT NAME)
      (WHEN (*CLASSP CHILD)
-       ((@ CHILD _PARENTS PUSH) PARENT)
-       ((@ PARENT ONCE) (+ CHANGE : NAME)
-        (LAMBDA (E) ((@ CHILD _PARENTS REMOVE) (@ E TARGET)))))) */
+       (LET (ALREADY-CHILD)
+         ((@ (@ CHILD _PARENTS) FOR-EACH)
+          (LAMBDA (P) (SETF ALREADY-CHILD (OR ALREADY-CHILD (= PARENT P)))))
+         (UNLESS ALREADY-CHILD
+           ((@ CHILD _PARENTS PUSH) PARENT)
+           ((@ PARENT ONCE) (+ CHANGE : NAME)
+            (LAMBDA (E) ((@ CHILD _PARENTS REMOVE) (@ E TARGET)))))))) */
 function addParent(child, parent, name) {
     if (Classp(child)) {
-        child._parents.push(parent);
-        return parent.once('change' + ':' + name, function (e) {
-            return child._parents.remove(e.target);
+        var alreadyChild = null;
+        child._parents.forEach(function (p) {
+            return alreadyChild = alreadyChild || parent === p;
         });
+        if (!alreadyChild) {
+            child._parents.push(parent);
+            return parent.once('change' + ':' + name, function (e) {
+                return child._parents.remove(e.target);
+            });
+        };
     };
 };
 /* (DEFMETHOD *CLASS COPY ()

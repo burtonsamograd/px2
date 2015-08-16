@@ -130,5 +130,12 @@ module.exports = function (cls) {
             expect(c.indexOf(o1)).to.equal(1);
             expect(c.indexOf(o2)).to.equal(0);
         })
+        it('should not add the same parent twice', function () {
+            var c = new cls();
+            var o1 = new cls();
+            c.add(o1);
+            c.add(o1);
+            expect(o1._parents.length).to.equal(1);
+        })
     });
 }

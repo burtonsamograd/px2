@@ -34,9 +34,14 @@
 
 (defun add-parent (child parent name)
   (when (*Classp child)
-    ((@ child _parents push) parent)
-    ((@ parent once) (+ :change ":" name) (lambda (e)
-                                            ((@ child _parents remove) (@ e target))))))
+    (let (already-child)
+      ((@ (@ child _parents) for-each)
+       (lambda (p)
+         (setf already-child (or already-child (= parent p)))))
+      (unless already-child
+          ((@ child _parents push) parent)
+          ((@ parent once) (+ :change ":" name) (lambda (e)
+                                                  ((@ child _parents remove) (@ e target))))))))
 
 (defmethod *Class copy ()
   (let ((obj (new (*Class this.options))))
