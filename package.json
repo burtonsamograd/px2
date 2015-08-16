@@ -1,6 +1,6 @@
 {
   "name": "px2",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "PX2 is a backbone replacement.",
   "main": "px2.js",
   "directories": {
