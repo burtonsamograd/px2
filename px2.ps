@@ -39,9 +39,24 @@
        (lambda (p)
          (setf already-child (or already-child (= parent p)))))
       (unless already-child
-          ((@ child _parents push) parent)
-          ((@ parent once) (+ :change ":" name) (lambda (e)
-                                                  ((@ child _parents remove) (@ e target))))))))
+        ((@ child _parents push) parent)
+        (if name
+            ((@ parent once) (+ :change ":" name) (lambda (e)
+                                                    ((@ child _parents remove) (@ e target))))
+
+            ;; TODO: figure out how to remove this from the parent's action handlers
+            ;; after the object is removed!!! This shouldn't cause a major problem leaving
+            ;; it around, just a performance hit over time due to the excess handlers that
+            ;; could build up in the parent object.
+            ;; A fix is to actually implement this.off, which takes the return value from
+            ;; this.on and will remove the handler from the action list. The trick is to get
+            ;; the return value of the next call into the function that is being passed to
+            ;; it!
+            ((@ parent on) (+ :remove) (lambda (e)
+                                         (if (= e.target obj)
+                                             ((@ child _parents remove) (@ e target)))))
+            
+            )))))
 
 (defmethod *Class copy ()
   (let ((obj (new (*Class this.options))))
@@ -195,8 +210,7 @@
 (defmethod *Class insert-at (i obj silent)
   ((@ (@ this _storage) splice) i 0 obj)
   (incf this.length)
-  (when (*Classp obj)
-    ((@ obj _parents push) this))
+  (add-parent obj this)
   (unless silent
     (trigger this
              :add obj
