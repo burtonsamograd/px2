@@ -190,8 +190,7 @@
 (defmethod *Class push (obj silent)
   (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
       (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
-  (when (*Classp obj)
-    ((@ obj _parents push) this))
+  (add-parent obj this)
   ((@ this _storage push) obj)
   (setf (@ this length) (@ this _storage length))
   (unless silent

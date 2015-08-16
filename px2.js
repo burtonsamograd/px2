@@ -343,7 +343,7 @@ Class.prototype.once = function (message, fun, self) {
               (*ERROR
                (+ Attempt to push  (@ OBJ TYPE) into container for
                   (@ THIS CONTAINS))))))
-     (WHEN (*CLASSP OBJ) ((@ OBJ _PARENTS PUSH) THIS))
+     (ADD-PARENT OBJ THIS)
      ((@ THIS _STORAGE PUSH) OBJ)
      (SETF (@ THIS LENGTH) (@ THIS _STORAGE LENGTH))
      (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
@@ -352,9 +352,7 @@ Class.prototype.push = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
     };
-    if (Classp(obj)) {
-        obj._parents.push(this);
-    };
+    addParent(obj, this);
     this._storage.push(obj);
     this.length = this._storage.length;
     if (!silent) {

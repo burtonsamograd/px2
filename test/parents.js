@@ -57,7 +57,7 @@ module.exports = function (cls) {
             obj.add(obj2);
             obj.on('change', handler);
             obj2.a(1);
-            expect(handler.calledTwice).to.be.true;
+            expect(handler.calledOnce).to.be.true;
         });
         it('should trigger events on enclosing object after an object was added using  defaults', function () {
             var inner = new cls({
