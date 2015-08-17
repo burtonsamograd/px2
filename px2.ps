@@ -20,6 +20,7 @@
           (setf (getprop this k) (getprop options k)))
   
   (setf this.length 0)
+  (setf this._cursor 0)
   
   (setf this.options options)
   
@@ -266,6 +267,21 @@
                           ") out of range of object ("
                           (@ this length) ")")))))
   (aref (@ this _storage) index))
+
+(defmethod *Model current (objOrNumber)
+  (if obj
+      (if ((typeof objOrNumber) == "object")
+          (setf this._current ((@ this index-of) objOrNumber))
+          (setf this._current objOrNumber))
+      (this.at this._current)))
+
+(defmethod *Model start ()
+  (setf this._current 0))
+
+(defmethod *Model next ()
+  (when (< this._current (1- this.length))
+    (incf this._current)
+    (this.at this._current)))
 
 (defmethod *Model index-of (obj)
   (let ((i -1))

@@ -29,6 +29,7 @@ function magic(options, args) {
         this[k] = options[k];
     };
     this.length = 0;
+    this._cursor = 0;
     this.options = options;
     if (this.init) {
         this.init.apply(this, args);
@@ -284,6 +285,22 @@ Model.prototype.at = function (index) {
         throw new Error('attempt to index (' + index + ') out of range of object (' + this.length + ')');
     };
     return this._storage[index];
+};
+Model.prototype.current = function (objornumber) {
+    if (obj) {
+        return (typeof objornumber)(equalsequals, 'object') ? (this._current = this.indexOf(objornumber)) : (this._current = objornumber);
+    } else {
+        return this.at(this._current);
+    };
+};
+Model.prototype.start = function () {
+    return this._current = 0;
+};
+Model.prototype.next = function () {
+    if (this._current < this.length - 1) {
+        ++this._current;
+        return this.at(this._current);
+    };
 };
 Model.prototype.indexOf = function (obj) {
     var i = -1;
