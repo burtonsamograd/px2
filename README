@@ -4,7 +4,7 @@ PX2 - a backbone replacement
 ==============================================================
 
 NOTE: Version 1.1.0 has BREAKING CHANGES due to a change in how
-classes are defineded and instantiated. See examples below for the
+classes are defined and instantiated. See examples below for the
 more streamlined way of class definition and object instantiation.
 
 Also, Class has been renamed to Model. Other than that everything else
