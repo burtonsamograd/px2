@@ -1,7 +1,8 @@
 var expect = require('chai').expect,
     sinon = require('sinon');
 
-module.exports = function (cls) {
+module.exports = function (constructor) {
+    var cls = constructor({});
     describe('collections', function () {
         it('should allow adding to the collection', function () {
             var c = new cls();
@@ -46,8 +47,10 @@ module.exports = function (cls) {
             expect(c.length).to.equal(0);
         });
         it('should allow adding a certain type to the collection if specified', function () {
-            var c = new cls({type:'cs', contains: 'c'});
-            var o = new cls({type:'c'});
+            var clsa = constructor({type:'cs', contains: 'c'});
+            var clsb = constructor({type:'c'});
+            var c = new clsa();
+            var o = new clsb();
             expect(c.add.bind(c, o)).to.not.throw(Error);
         });
         it('should not allow adding an object twice', function () {
@@ -58,13 +61,17 @@ module.exports = function (cls) {
             expect(c.length).to.equal(1);
         });
         it('should only allow adding a certain type to the collection if specified', function () {
-            var c = new cls({type:'cs', contains: 'c'});
-            var o = new cls({type:'d'});
+            var clsa = constructor({type:'cs', contains: 'c'});
+            var clsb = constructor({type:'d'});
+            var c = new clsa();
+            var o = new clsb();
             expect(c.add.bind(c, o)).to.throw(Error);
         });
         it('should only allow adding a certain type to the collection if specified using push', function () {
-            var c = new cls({type:'cs', contains: 'c'});
-            var o = new cls({type:'d'});
+            var clsa = constructor({type:'cs', contains: 'c'});
+            var clsb = constructor({type:'d'});
+            var c = new clsa();
+            var o = new clsb();
             expect(c.push.bind(c, o)).to.throw(Error);
         });
         it('should clear the collection', function () {

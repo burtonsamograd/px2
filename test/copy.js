@@ -1,8 +1,9 @@
 var expect = require('chai').expect,
     sinon = require('sinon');
 
-module.exports = function (cls) {
+module.exports = function (constructor) {
     describe('copy', function () {
+        var cls = constructor({});
         var obj;
         beforeEach(function () {
             obj = new cls();

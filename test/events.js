@@ -1,16 +1,18 @@
 var expect = require('chai').expect,
     sinon = require('sinon');
 
-module.exports = function (cls) {
+module.exports = function (constructor) {
+    var cls = constructor({
+        init: function () {
+            this.create('a');
+            this.create('b', 1);
+        }
+    });
+
     describe('events', function () {
         var obj, handler, event;
         beforeEach(function () {
-            obj = new cls({
-                init: function () {
-                    this.create('a');
-                    this.create('b', 1);
-                }
-            });
+            obj = new cls();
             handler = sinon.spy(function (e) { event = e; });
         });
         afterEach(function () {
@@ -79,9 +81,11 @@ module.exports = function (cls) {
             // adding to x should not blow the stack by recursively calling trigger
             var X = { type: 'X', contains: 'Y' };
             var Y = { type: 'Y', contains: 'X' };
+            var clsa = constructor(X);
+            var clsb = constructor(Y);
 
-            var x = new cls(X);
-            var y = new cls(Y);
+            var x = new cls();
+            var y = new cls();
             x.create(x, y);
             y.create(y, x);
 

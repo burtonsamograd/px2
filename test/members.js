@@ -1,16 +1,17 @@
 var expect = require('chai').expect,
     sinon = require('sinon');
 
-module.exports = function (cls) {
+module.exports = function (constructor) {
     describe('members', function () {
-        var obj;
-        beforeEach(function () {
-            obj = new cls({
+        var cls = constructor({
                 init: function () {
                     this.create('a');
                     this.create('b', 1);
                 }
-            });
+        });
+        var obj;
+        beforeEach(function () {
+            obj = new cls();
         });
         it('should have a length member of 0', function () {
             expect(obj.length).to.equal(0);

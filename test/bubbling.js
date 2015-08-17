@@ -1,19 +1,24 @@
 var expect = require('chai').expect,
     sinon = require('sinon');
 
-module.exports = function (cls) {
+module.exports = function (constructor) {
     describe('bubbling', function () {
         var obj, col, col2, cols, handler, event;
         beforeEach(function () {
-            obj = new cls({
+            var clsa = constructor({
                 type: 'obj',
                 init: function () {
                     this.create('a', 0);
                 }
             });
-            col = new cls({type: 'objs', contains: 'obj'});
-            col2 = new cls({type: 'objs', contains: 'obj'});
-            cols = new cls({type: 'objss', contains: 'objs'});
+            var clsb = constructor({type: 'objs', contains: 'obj'});
+            var clsc = constructor({type: 'objs', contains: 'obj'});
+            var clsd = constructor({type: 'objss', contains: 'objs'});
+
+            obj = new clsa();
+            col = new clsb();
+            col2 = new clsc();
+            cols = new clsd();
             col.add(obj);
             col2.add(obj);
             cols.add(col);
@@ -41,63 +46,69 @@ module.exports = function (cls) {
         });
 
         it('should not call the parent event handler when false is returned from the child event handler', function () {
-               var child = new cls({
-                   init: function () {
-                       this.create('a', 0);
-                   }
-               });
-               var parent = new cls({});
-               parent.add(child);
-
-               parentHandler = sinon.spy(function (e) { });
-               childHandler = sinon.spy(function (e) { return false; });
-
-               parent.on('change', parentHandler);
-               child.on('change', childHandler);
-
-               child.a(1);
-
-               expect(parentHandler.called).to.be.false;
+            var cls = constructor({
+                init: function () {
+                    this.create('a', 0);
+                }
+            });
+            var child = new cls();
+            var parent = new cls({});
+            parent.add(child);
+            
+            parentHandler = sinon.spy(function (e) { });
+            childHandler = sinon.spy(function (e) { return false; });
+            
+            parent.on('change', parentHandler);
+            child.on('change', childHandler);
+            
+            child.a(1);
+            
+            expect(parentHandler.called).to.be.false;
         });
         
         it('should call the parent event handler when true is returned from the child event handler', function () {
-               var child = new cls({
-                   init: function () {
-                       this.create('a', 0);
-                   }
-               });
-               var parent = new cls({});
-               parent.add(child);
-
-               parentHandler = sinon.spy(function (e) { });
-               childHandler = sinon.spy(function (e) { return true; });
-
-               parent.on('change', parentHandler);
-               child.on('change', childHandler);
-
-               child.a(1);
-
-               expect(parentHandler.called).to.be.true;
+            var clsa = constructor({
+                init: function () {
+                    this.create('a', 0);
+                }
+            })
+            var clsb = constructor({});
+            var child = new clsa();
+            var parent = new clsb();
+            parent.add(child);
+            
+            parentHandler = sinon.spy(function (e) { });
+            childHandler = sinon.spy(function (e) { return true; });
+            
+            parent.on('change', parentHandler);
+            child.on('change', childHandler);
+            
+            child.a(1);
+            
+            expect(parentHandler.called).to.be.true;
         });
 
         it('should not call the parent event handler when a truthy value is returned from the child event handler', function () {
-               var child = new cls({
-                   init: function () {
-                       this.create('a', 0);
-                   }
-               });
-               var parent = new cls({});
-               parent.add(child);
-
-               parentHandler = sinon.spy(function (e) { });
-               childHandler = sinon.spy(function (e) { return 1; });
-
-               parent.on('change', parentHandler);
-               child.on('change', childHandler);
-
-               child.a(1);
-
-               expect(parentHandler.called).to.be.false;
+            var clsa = constructor({
+                init: function () {
+                    this.create('a', 0);
+                }
+            })
+            var clsb = constructor({});
+            var child = new clsa();
+            var parent = new clsb();
+           
+            parent.add(child);
+            
+            parentHandler = sinon.spy(function (e) { });
+            childHandler = sinon.spy(function (e) { return 1; });
+            
+            parent.on('change', parentHandler);
+            child.on('change', childHandler);
+            
+            child.a(1);
+            
+            expect(parentHandler.called).to.be.false;
         });
     });
 }
