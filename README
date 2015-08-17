@@ -1,7 +1,7 @@
 PX2 - a backbone replacement
 ----------------------------
 
-=======================================================================
+==============================================================
 
 NOTE: Version 1.1.0 has BREAKING CHANGES due to a change in how
 classes are defineded and instantiated. See examples below for the
@@ -10,7 +10,7 @@ more streamlined way of class definition and object instantiation.
 Also, Class has been renamed to Model. Other than that everything else
 should work as it used to.
 
-=======================================================================
+==============================================================
 
 PX2 is a backbone replacement with a more consistent design:
 
@@ -228,7 +228,7 @@ Example of defining and using a Model as an object and a container
         }
     });
     
-    // Instantiate a MyObject
+    // Instantiate a Points collection
     var points = new Points();
     
     points.add(new Point(100, 200));
@@ -304,9 +304,8 @@ View example
 
     var points = new Points();
 
-    // A view constructor is similar to a Model constructor, but the
-    // second argument to the call to new View is the model (generally
-    // a Model) for the View.
+    // A View constructor is similar to a Model constructor, but the
+    // first argument is *always* the model for the view.
     var pointsView = new MyView(points, 1);
     $('document').ready(function () {
         $('body').html(pointsView.$el);
