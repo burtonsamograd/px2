@@ -97,10 +97,10 @@ Model methods
      this.remove(value, silent)
 
        Remove value from the collection if it has been added to it
-       using add/push. Sends "add" with event.target being the value
-       added and "modified" with event.target being an array with the
-       value added, unless silent is true. Returns true if the object
-       was removed, false otherwise.
+       using add/push/insertAt. Sends "add" with event.target being
+       the value added and "modified" with event.target being an array
+       with the value added, unless silent is true. Returns true if
+       the object was removed, false otherwise.
 
      this.at(index)
 
@@ -114,7 +114,7 @@ Model methods
        
      this.length:
 
-       The number of elements contained in the object.
+       The number of elements contained in the object storage.
 
      this.clear(silent)
 
@@ -143,8 +143,8 @@ Model methods
 
        Send the message to this, and then all containing parents,
        recursively up the containment tree.  Propagation stops when
-       the message is intercepted and handled.
-       // TODO: continue propagation if handler returns true?
+       the message is intercepted and handled, unless the handler
+       returns true (and only true, not truthy).
 
      this.each(function (value) ...)
 
@@ -235,7 +235,7 @@ Example of defining and using a Model as an object and a container
     
     var point = points.at(0);
     
-    var xs = point.map(function (point) {
+    var xs = points.map(function (point) {
         return point.x();
     }); // => [100]
     
@@ -243,7 +243,7 @@ Views
 -----
 
 Views are derived Model and contain all features and methods that
-Model(es) give.
+Models give.
 
 View example
 ------------
@@ -283,14 +283,15 @@ View example
             }
         }
     
-        // constructor is passed the model as the first argument (not
-        // optional), and any other arguments passed after that
-        // model can also be referenced as this.model, or this.points if using
-        // the 'model' option above.
         init: function (model, value) {
               this.create('value', value);
               this.create('message', "Hello World!");
+
+              // eithefq this.model or this.points can be used, due to
+              // the 'model' option used above
               this.points.on('add', this.render); // 'this' is bound automagically
+
+              // this.render() is automatically called at the end of init for Views.
         }
     
         // render, which if you don't provide a default is given that
@@ -306,7 +307,7 @@ View example
 
     // A View constructor is similar to a Model constructor, but the
     // first argument is *always* the model for the view.
-    var pointsView = new MyView(points, 1);
+    var pointsView = new PointsView(points, 1);
     $('document').ready(function () {
         $('body').html(pointsView.$el);
     });
