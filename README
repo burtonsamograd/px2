@@ -39,6 +39,16 @@ Installation
     npm install --save px2
     bower install --save px2
 
+Dependencies
+------------
+
+    jQuery if you use Views, none otherwise.
+
+Examples
+--------
+
+     See the examples/ folder.
+
 Model methods
 -------------
 
