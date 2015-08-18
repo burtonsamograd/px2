@@ -1,1 +1,2 @@
-document and write unit tests for current, start and next.
+-- document and write unit tests for current, start and next.
+-- add test to ensure this.render is automatically called for views

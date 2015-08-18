@@ -410,6 +410,7 @@ function View(options) {
                 };
             };
             magic.call(this, options, arguments);
+            this.render();
             return this;
         };
     };

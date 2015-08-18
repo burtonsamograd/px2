@@ -374,6 +374,8 @@
                               ((@ this $el on) event ((getprop options 'events event 'bind) this))))
 
                     ((@ magic call) this options arguments)
+
+                    ((@ this render))
                     this
                     ))))
          (setf (@ fun prototype)
