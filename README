@@ -21,13 +21,13 @@ PX2 is a backbone replacement with a more consistent design:
 
    - all derived Models can have named getters and setters
 
-   - Views are of type Model, so they can have members and
+   - Views derived from Model, so they can have members and
      getter/setters
    
-   - objects that 'contain' (either by using 'set' or 'add' methods)
-     other objects are passed messages from the objects they contain
-     through trigger, just like backbone does with collections but
-     more general.
+   - objects that 'contain' (by using 'set', 'add', 'push' or
+     'insertAt' methods) other objects are passed messages from the
+     objects they contain through trigger, just like backbone does
+     with collections but more general.
 
 If you don't like the fact you can't have collections of collections
 or that views and collections can't have settable members, then PX2 is
