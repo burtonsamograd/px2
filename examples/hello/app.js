@@ -16,7 +16,6 @@ var HelloWorldView = View({
 var helloWorld = new HelloWorld("Hello, World from PX2!");
 var helloWorldView = new HelloWorldView(helloWorld);
 
-debugger
 $(document).ready(function () {
     $('body').html(helloWorldView.$el);
 })
