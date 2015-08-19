@@ -288,7 +288,7 @@ Model.prototype.at = function (index) {
     return this._storage[index];
 };
 Model.prototype.current = function (objornumber) {
-    if (obj) {
+    if (objornumber) {
         return (typeof objornumber)(equalsequals, 'object') ? (this._current = this.indexOf(objornumber)) : (this._current = objornumber);
     } else {
         return this.at(this._current);
