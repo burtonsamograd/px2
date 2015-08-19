@@ -149,7 +149,8 @@
       (trigger this 
                :change old-value
                (+ :change ":" name) old-value))
-    (add-parent value this name)))
+    (add-parent value this name))
+  value)
 
 (defmethod *Model destroy (name)
   (let ((value (getprop this '_props name)))

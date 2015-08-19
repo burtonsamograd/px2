@@ -144,7 +144,8 @@ Model.prototype.set = function (name, value, silent) {
         this.trigger('change', oldValue);
         this.trigger('change' + ':' + name, oldValue);
     };
-    return addParent(value, this, name);
+    addParent(value, this, name);
+    return value;
 };
 Model.prototype.destroy = function (name) {
     var value = this._props[name];
