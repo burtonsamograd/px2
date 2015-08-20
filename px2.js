@@ -297,9 +297,18 @@ Model.prototype.current = function (objornumber) {
 Model.prototype.start = function () {
     return this._current = 0;
 };
+Model.prototype.end = function () {
+    return this._current = this.length - 1;
+};
 Model.prototype.next = function () {
     if (this._current < this.length - 1) {
         ++this._current;
+        return this.at(this._current);
+    };
+};
+Model.prototype.prev = function () {
+    if (this._current > 0) {
+        --this._current;
         return this.at(this._current);
     };
 };
