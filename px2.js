@@ -296,7 +296,7 @@ Model.prototype.current = function (objornumber) {
 };
 Model.prototype.start = function () {
     this._current = 0;
-    return this.curent();
+    return this.current();
 };
 Model.prototype.end = function () {
     this._current = this.length - 1;
