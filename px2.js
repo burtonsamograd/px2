@@ -289,7 +289,7 @@ Model.prototype.at = function (index) {
 };
 Model.prototype.current = function (objornumber) {
     if (objornumber) {
-        return (typeof objornumber)(equalsequals, 'object') ? (this._current = this.indexOf(objornumber)) : (this._current = objornumber);
+        return (typeof objornumber)(equalsequalsequals, 'object') ? (this._current = objornumber) : (this._current = this.indexOf(objornumber));
     } else {
         return this.at(this._current);
     };

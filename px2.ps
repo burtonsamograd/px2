@@ -271,9 +271,9 @@
 
 (defmethod *Model current (objOrNumber)
   (if objOrNumber
-      (if ((typeof objOrNumber) == "object")
-          (setf this._current ((@ this index-of) objOrNumber))
-          (setf this._current objOrNumber))
+      (if ((typeof objOrNumber) === "object")
+          (setf this._current objOrNumber)
+          (setf this._current ((@ this index-of) objOrNumber)))
       (this.at this._current)))
 
 (defmethod *Model start ()
