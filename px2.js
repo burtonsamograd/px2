@@ -295,10 +295,12 @@ Model.prototype.current = function (objornumber) {
     };
 };
 Model.prototype.start = function () {
-    return this._current = 0;
+    this._current = 0;
+    return this.curent();
 };
 Model.prototype.end = function () {
-    return this._current = this.length - 1;
+    this._current = this.length - 1;
+    return this.current();
 };
 Model.prototype.next = function (loop) {
     if (loop) {

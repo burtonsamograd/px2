@@ -277,10 +277,12 @@
       (this.at this._current)))
 
 (defmethod *Model start ()
-  (setf this._current 0))
+  (setf this._current 0)
+  ((@ this curent)))
 
 (defmethod *Model end ()
-  (setf this._current (1- this.length)))
+  (setf this._current (1- this.length))
+  ((@ this current)))
 
 (defmethod *Model next (loop)
   (if loop
