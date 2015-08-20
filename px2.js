@@ -312,7 +312,7 @@ Model.prototype.next = function (loop) {
 };
 Model.prototype.prev = function (loop) {
     if (loop) {
-        return this._current === 0 ? (this._current = this.length - 1) : --this.current;
+        return this._current === 0 ? (this._current = this.length - 1) : --this._current;
     } else {
         if (this._current > 0) {
             --this._current;

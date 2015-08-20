@@ -293,7 +293,7 @@
   (if loop
       (if (= this._current 0)
           (setf this._current (1- this.length))
-          (decf this.current))
+          (decf this._current))
       (when (> this._current 0)
         (decf this._current)
         (this.at this._current))))
