@@ -300,16 +300,24 @@ Model.prototype.start = function () {
 Model.prototype.end = function () {
     return this._current = this.length - 1;
 };
-Model.prototype.next = function () {
-    if (this._current < this.length - 1) {
-        ++this._current;
-        return this.at(this._current);
+Model.prototype.next = function (loop) {
+    if (loop) {
+        return this._current = (++this._current % this.length + this.length) % this.length;
+    } else {
+        if (this._current < this.length - 1) {
+            ++this._current;
+            return this.at(this._current);
+        };
     };
 };
-Model.prototype.prev = function () {
-    if (this._current > 0) {
-        --this._current;
-        return this.at(this._current);
+Model.prototype.prev = function (loop) {
+    if (loop) {
+        return this._current === 0 ? (this._current = this.length - 1) : --this.current;
+    } else {
+        if (this._current > 0) {
+            --this._current;
+            return this.at(this._current);
+        };
     };
 };
 Model.prototype.indexOf = function (obj) {

@@ -282,15 +282,21 @@
 (defmethod *Model end ()
   (setf this._current (1- this.length)))
 
-(defmethod *Model next ()
-  (when (< this._current (1- this.length))
-    (incf this._current)
-    (this.at this._current)))
+(defmethod *Model next (loop)
+  (if loop
+      (setf this._current (mod (incf this._current) this.length))
+      (when (< this._current (1- this.length))
+        (incf this._current)
+        (this.at this._current))))
 
-(defmethod *Model prev ()
-  (when (> this._current 0)
-    (decf this._current)
-    (this.at this._current)))
+(defmethod *Model prev (loop)
+  (if loop
+      (if (= this._current 0)
+          (setf this._current (1- this.length))
+          (decf this.current))
+      (when (> this._current 0)
+        (decf this._current)
+        (this.at this._current))))
 
 (defmethod *Model index-of (obj)
   (let ((i -1))

@@ -1,3 +1,4 @@
--- document and write unit tests for current, start and next.
+-- document and write unit tests for current, start, end, next, and
+   prev with and without loop parameters
 -- add test to ensure this.render is automatically called for views
 -- write test to ensure that set returns the value it is passed
