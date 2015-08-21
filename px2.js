@@ -430,7 +430,7 @@ function View(options) {
             if (options.init) {
                 if (!options.initAugmented) {
                     this.init = function () {
-                        options.originalInit.call(this);
+                        options.originalInit.apply(this, arguments);
                         return this.render();
                     };
                     options.initAugmented = this.init;

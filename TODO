@@ -1,3 +1,4 @@
 -- add Model.requuest/ajax, which binds this properly in sucess: and
    failure:.  Write for both node (using request) and browser so that
    node package doesn't depend on jquery.
+-- test to ensure arguments are passed to init function

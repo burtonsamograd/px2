@@ -399,7 +399,7 @@
                         (progn
                           (setf (@ this init)
                                 (lambda ()
-                                  ((@ (@ options original-init) call) this)
+                                  ((@ (@ options original-init) apply) this arguments)
                                   ((@ this render))))
                           (setf (@ options init-augmented) (@ this init))
                           (setf (@ options original-init) (@ options init))
