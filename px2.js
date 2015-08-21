@@ -108,11 +108,11 @@ Model.prototype.copy = function () {
     });
     return obj;
 };
-Model.prototype.get = function (name, silent) {
+Model.prototype.get = function (name, loud) {
     if (!this._members.hasOwnProperty(name)) {
         throw new Error('Attempt to get a property ' + name + ' that does not exist.');
     };
-    if (!silent) {
+    if (loud) {
         this.trigger('get', this[name]);
         this.trigger('get' + ':' + name, this[name]);
     };

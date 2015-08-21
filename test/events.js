@@ -35,10 +35,14 @@ module.exports = function (constructor) {
             obj.a(1);
             expect(handler.calledTwice).to.be.true;
         });
-        it('should detect gets call a handler when required', function () {
+        it('should detect get and call a handler when loud is passed, but not when loud is not', function () {
             obj.on('get', handler);
             obj.on('get:a', handler);
             obj.a();
+            expect(handler.called).to.be.false;
+            obj.get('a', true); // loud options only allowed on
+                                // traditional get call, not named
+                                // getter setter
             expect(handler.calledTwice).to.be.true;
         });
         it('should not call a handler when a variable has not been changed', function () {
@@ -137,6 +141,15 @@ module.exports = function (constructor) {
             obj.on('modified', handler);
             obj.sort(function (a, b) { return a - b; });
             expect(handler.calledOnce).to.be.true;
+        });
+
+        it('should be able to create a random variable using a loud getter.', function () {
+            obj.create('random');
+            obj.on('get:random', function (e) {
+              return this.random(Math.random());
+            });
+            var a = obj.get('random', true);
+            expect(obj.get('random', true)).to.not.equal(a);
         });
     });
 }

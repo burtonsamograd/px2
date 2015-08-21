@@ -111,10 +111,10 @@
                                   (obj.push e t))))
     obj))
   
-(defmethod *Model get (name silent)
+(defmethod *Model get (name loud)
   (if (not ((@ this _members has-own-property) name))
       (throw (new (*Error (+ "Attempt to get a property " name " that does not exist.")))))
-  (unless silent
+  (when loud
     (trigger this 
              :get this[name]
              (+ :get ":" name) this[name]))

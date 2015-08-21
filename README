@@ -71,11 +71,25 @@ Model methods
        (passed as the first part of 'change' trigger handler) is the
        old value that this.name() was set to.
 
-     this.get(name, silent)
+     this.get(name, loud)
 
        Standard getter for Model objects, sends 'get' and 'get:$name'
-       messages, unless silent is true.
+       messages. Will send 'get' and 'get:$name' messages if 'loud' is
+       true, with the event value being the previous value of
+       this.name(). This message is sent before the value is returned
+       allowing the opportuntity to change the value that is going to
+       be returned to the calling function.  This allows for the
+       creation of named variables that return a different value
+       everytime they are called:
 
+          // Create a random variable
+          obj.create('random');
+          obj.on('get:random', function (e) {
+              return this.random(Math.random());
+          });
+          var a = obj.get('random', true);
+          expect(obj.get('random', true)).to.not.equal(a);
+  
      this.add(value, silent)
 
        Add value to the collection if it is not already in the
