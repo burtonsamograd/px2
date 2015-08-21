@@ -19,7 +19,7 @@ PX2 is a backbone replacement with a more consistent design:
      with collections but more general.
 
    - iterators (start,end,next,prev,current), standard mapping
-     functions (map, each) and sorting.
+     functions (map, each, forIn) and sorting.
 
 If you don't like the fact you can't have collections of collections
 or that views and collections can't have settable members, then PX2 is
