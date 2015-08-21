@@ -156,13 +156,18 @@ Model methods
        the message is intercepted and handled, unless the handler
        returns true (and only true, not truthy).
 
-     this.each(function (value) ...)
+     this.each(function (value) { ... }, self)
 
        Side effects only iteration over elements.
 
-     this.map(function (value) ...)
+     this.map(function (value) {...}, self)
 
        Returns an array of returned values from function.
+
+     this.forIn(function (key, value) { ... }, self)
+
+       Side effects only mapping over members (created with
+       this.create());
 
      this.find(object || function (value) ...)
 

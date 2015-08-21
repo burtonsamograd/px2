@@ -8,7 +8,7 @@
 
 (defun magic (options args)
   (setf (@ this _parents) (array)
-        (@ this _props) (create)
+        (@ this _members) (create)
         (@ this _actions) (create)
         (@ this _storage) (array))
   
@@ -72,12 +72,12 @@
   (let* ((cls (*Model this.options))
          (obj (new (cls))))
     ;; copy members
-    (for-in (prop this._props)
+    (for-in (prop this._members)
             (obj.destroy prop t)
-            (let ((this-prop (getprop this '_props prop)))
+            (let ((this-prop (getprop this '_members prop)))
               (if (*Modelp this-prop)
                   (obj.create prop
-                              ((@ (getprop this '_props prop) copy)))
+                              ((@ (getprop this '_members prop) copy)))
                   (obj.create prop
                               (if (or ((@ *Array is-array) this-prop)
                                       (= (typeof this-prop) 'object))
@@ -112,13 +112,13 @@
     obj))
   
 (defmethod *Model get (name silent)
-  (if (not ((@ this _props has-own-property) name))
+  (if (not ((@ this _members has-own-property) name))
       (throw (new (*Error (+ "Attempt to get a property " name " that does not exist.")))))
   (unless silent
     (trigger this 
              :get this[name]
              (+ :get ":" name) this[name]))
-    (getprop this '_props name))
+    (getprop this '_members name))
 
 (defun getset (name value silent)
   (if (= (@ arguments length) 1)
@@ -126,10 +126,10 @@
       ((@ this set) name value silent)))
       
 (defmethod *Model create (name value silent)
-  (if ((@ this _props has-own-property) name)
+  (if ((@ this _members has-own-property) name)
       (throw (new (*Error (+ "Attempt to create property " name " that already exists.")))))
 
-  (setf (getprop this '_props name) value
+  (setf (getprop this '_members name) value
         (getprop this name) ((@ getset bind) this name))
   
   (add-parent value this name)
@@ -140,11 +140,11 @@
   value)
               
 (defmethod *Model set (name value silent)
-  (if (not ((@ this _props has-own-property) name))
+  (if (not ((@ this _members has-own-property) name))
       (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
 
-  (let ((old-value (getprop this '_props name)))
-    (setf (getprop this '_props name) value)
+  (let ((old-value (getprop this '_members name)))
+    (setf (getprop this '_members name) value)
     (unless silent
       (trigger this 
                :change old-value
@@ -153,8 +153,8 @@
   value)
 
 (defmethod *Model destroy (name)
-  (let ((value (getprop this '_props name)))
-    (delete (getprop this '_props name))                  ; remove property 
+  (let ((value (getprop this '_members name)))
+    (delete (getprop this '_members name))                  ; remove property 
     (delete (getprop this '_actions (+ :change ":" name))); remove change action
     (delete (getprop this name))                          ; remove named getter/setter
     (trigger this :destroy value)))
@@ -314,6 +314,11 @@
   (let ((self (or self this)))
     (dolist (item (@ this _storage))
       ((@ fun call) self item))))
+
+(defmethod *Model for-in (fun self)
+  (let ((self (or self this)))
+    (for-in (k (@ this _members))
+            ((@ fun call) self k (getprop this '_members k)))))
 
 (defmethod *Model map (fun self)
   (let ((result '())

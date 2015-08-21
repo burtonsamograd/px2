@@ -151,5 +151,22 @@ module.exports = function (constructor) {
             expect(a.current(d)).to.equal(d);
             expect(a.current()).to.equal(d);
         });
+
+        it('should iterate over members using forIn', function () {
+            var a = new cls();
+            a.create('a', 1);
+            a.create('b', 2);
+            a.create('c', 3);
+            var keys = [];
+            var values = [];
+
+            a.forIn(function (k, v) {
+                keys.push(k);
+                values.push(v);
+            });
+
+            expect(keys).to.eql(['a', 'b', 'c']);
+            expect(values).to.eql([1,2,3]);
+        });
     });
 }
