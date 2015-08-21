@@ -4,3 +4,5 @@
 
 -- changing current (through current,next,prev,start,end) should send
    a change and change:current messages
+
+-- add this.forIn(function (key, value) { ... } to map over members.
