@@ -3,27 +3,27 @@ PX2 - a Backbone like framework
 
 PX2 is an MV*, Backbone-like framework with a more consistent design:
 
-   - objects are both objects and containers, of type Model or View
+   - objects are also containers, of type Model or View
 
-   - named getters and setters
+   - named getters and setters, including loud getters
 
    - containers can be specialized so they only contain a specific
-     type of object and contain members
+     type of object and also contain members
 
    - Views derived from Model, so they can have members and
      getter/setters and be containers
    
-   - objects that 'contain' (by using 'set', 'add', 'push' or
-     'insertAt' methods) other objects are passed messages from the
-     objects they contain through trigger, just like backbone does
-     with collections but more general.
+   - objects that 'contain' other objects (by using 'set', 'add',
+     'push' or 'insertAt' methods) are passed messages from the
+     objects they contain, just like Backbone collections but more
+     general.
 
    - iterators (start,end,next,prev,current), standard mapping
      functions (map, each, forIn) and sorting.
 
 If you don't like the fact you can't have collections of collections
-or that views and collections can't have settable members, then PX2 is
-for you.
+or that views and collections can't have settable members in Backbone,
+then PX2 is for you.
 
 Installation
 ------------
