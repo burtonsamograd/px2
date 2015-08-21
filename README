@@ -158,16 +158,18 @@ Model methods
 
      this.each(function (value) { ... }, self)
 
-       Side effects only iteration over elements.
+       Side effects only iteration over elements. 'self' defaults to
+       'this' if not provided.
 
      this.map(function (value) {...}, self)
 
-       Returns an array of returned values from function.
+       Returns an array of returned values from function. 'self'
+       defaults to 'this' if not provided.
 
      this.forIn(function (key, value) { ... }, self)
 
        Side effects only mapping over members (created with
-       this.create());
+       this.create()); 'self' defaults to 'this' if not provided.
 
      this.find(object || function (value) ...)
 
