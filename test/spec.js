@@ -110,7 +110,7 @@ describe('View', function () {
             };
             return done();
         });
-        return it('should only augment the render function once', function (done) {
+        it('should only augment the render function once', function (done) {
             var options = { render : function () {
                 return this.$el;
             } };
@@ -125,6 +125,17 @@ describe('View', function () {
             };
             if (!view2.render()) {
                 throw new Error('render2 function did not return a value.');
+            };
+            return done();
+        });
+        return it('automatically call the render function on construction', function (done) {
+            var render = sinon.spy(function () {
+                return null;
+            });
+            var cls = View({ render : render });
+            var view = new cls();
+            if (!render.calledOnce) {
+                throw new Error('render was not called during init.');
             };
             return done();
         });

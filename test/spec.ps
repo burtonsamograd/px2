@@ -108,6 +108,13 @@
               (assert ((@ view1 render)) "render1 function did not return a value.")
               (assert ((@ view2 render)) "render2 function did not return a value.")
               (done)))
+
+        (deftest "automatically call the render function on construction"
+            (let* ((render ((@ sinon spy) (lambda () )))
+                   (cls (*View (create render render)))
+                   (view (new (cls))))
+              (assert (@ render called-once) "render was not called during init.")
+              (done)))
       ))
 
 

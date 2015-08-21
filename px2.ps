@@ -386,13 +386,22 @@
                           (setf (@ this init) (@ options init-augmented))
                           (setf (@ this init) (lambda () (this.render)))))
 
+                    (when (@ options init)
+                      (unless (@ options init-augmented)
+                        (progn
+                          (setf (@ this init)
+                                (lambda ()
+                                  ((@ (@ options original-init) call) this)
+                                  ((@ this render))))
+                          (setf (@ options init-augmented) (@ this init))
+                          (setf (@ options original-init) (@ options init))
+                          (delete (@ options init)))))
+
                     (when (@ options events)
                       (for-in (event (@ options events))
                               ((@ this $el on) event ((getprop options 'events event 'bind) this))))
 
                     ((@ magic call) this options arguments)
-
-                    ((@ this render))
                     this
                     ))))
          (setf (@ fun prototype)

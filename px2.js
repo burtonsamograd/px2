@@ -424,13 +424,23 @@ function View(options) {
                     };
                 };
             };
+            if (options.init) {
+                if (!options.initAugmented) {
+                    this.init = function () {
+                        options.originalInit.call(this);
+                        return this.render();
+                    };
+                    options.initAugmented = this.init;
+                    options.originalInit = options.init;
+                    delete options.init;
+                };
+            };
             if (options.events) {
                 for (var event in options.events) {
                     this.$el.on(event, options.events[event].bind(this));
                 };
             };
             magic.call(this, options, arguments);
-            this.render();
             return this;
         };
     };
