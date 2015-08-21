@@ -1,8 +1,7 @@
-PX2 - a backbone replacement
-----------------------------
+PX2 - a Backbone like framework
+-------------------------------
 
-PX2 an MV* framework, meant to replace backbone, with a more
-consistent design:
+PX2 is an MV*, Backbone-like framework with a more consistent design:
 
    - objects are both objects and containers, of type Model or View
 
