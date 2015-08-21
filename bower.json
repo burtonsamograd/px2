@@ -1,12 +1,12 @@
 {
   "name": "px2",
   "main": "px2.js",
-  "version": "1.1.28",
+  "version": "1.1.29",
   "homepage": "https://github.com/burtonsamograd/px2",
   "authors": [
     "Burton Samograd <burton.samograd@gmail.com>"
   ],
-  "description": "PX2 is a backbone replacement.",
+  "description": "PX2 is a Backbone replacement.",
   "keywords": [
     "controller",
     "model",
