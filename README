@@ -3,7 +3,7 @@ PX2 - a backbone replacement
 
 PX2 is a backbone replacement with a more consistent design:
 
-   - objects are both objects and containers, of type Model
+   - objects are both objects and containers, of type Model or View
 
    - containers can be specialized so they only contain a specific
      type of object
@@ -17,6 +17,9 @@ PX2 is a backbone replacement with a more consistent design:
      'insertAt' methods) other objects are passed messages from the
      objects they contain through trigger, just like backbone does
      with collections but more general.
+
+   - iterators (start,end,next,prev,current), standard mapping
+     functions (map, each) and sorting.
 
 If you don't like the fact you can't have collections of collections
 or that views and collections can't have settable members, then PX2 is
