@@ -184,6 +184,11 @@ Iterators
       silent is true, with the event.value being the previous value of
       this.current().
 
+      Note: the pattern for iterators is slightly different than other
+      languages:
+
+          for(var i = this.start(); i; i = this.next() { ... }
+
       this.start(silent)
 
         Select the first element of storage as current.
