@@ -287,39 +287,36 @@ Model.prototype.at = function (index) {
     };
     return this._storage[index];
 };
-Model.prototype.current = function (objornumber) {
-    if (objornumber) {
+Model.prototype.current = function (objornumber, silent) {
+    if (objornumber !== undefined) {
+        var prevValue = this.at(this._current);
+        if (!silent) {
+            this.trigger('change', prevValue);
+            this.trigger('change:current', prevValue);
+        };
         return typeof objornumber === 'object' ? this.at(this._current = this.indexOf(objornumber)) : this.at(this._current = objornumber);
     } else {
         return this.at(this._current);
     };
 };
-Model.prototype.start = function () {
-    this._current = 0;
-    return this.current();
+Model.prototype.start = function (silent) {
+    return this.current(0, silent);
 };
-Model.prototype.end = function () {
-    this._current = this.length - 1;
-    return this.current();
+Model.prototype.end = function (silent) {
+    return this.current(this.length - 1, silent);
 };
-Model.prototype.next = function (loop) {
+Model.prototype.next = function (loop, silent) {
     if (loop) {
-        return this.at(this._current = (++this._current % this.length + this.length) % this.length);
+        return this.current((this._current + 1) % this.length, silent);
     } else {
-        if (this._current < this.length - 1) {
-            this.at(++this._current);
-            return this.at(this._current);
-        };
+        return this._current < this.length - 1 ? this.current(this._current + 1, silent) : undefined;
     };
 };
-Model.prototype.prev = function (loop) {
+Model.prototype.prev = function (loop, silent) {
     if (loop) {
-        return this._current === 0 ? this.at(this._current = this.length - 1) : this.at(--this._current);
+        return this._current === 0 ? this.current(this.length - 1, silent) : this.current(this._current - 1, silent);
     } else {
-        if (this._current > 0) {
-            this.at(--this._current);
-            return this.at(this._current);
-        };
+        return this._current > 0 ? this.current(this._current - 1, silent) : undefined;
     };
 };
 Model.prototype.indexOf = function (obj) {

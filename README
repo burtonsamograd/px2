@@ -180,27 +180,31 @@ Model methods
 Iterators
 ---------
 
-      this.start()
+      All iterators send "change" and "change:current" messages unless
+      silent is true, with the event.value being the previous value of
+      this.current().
+
+      this.start(silent)
 
         Select the first element of storage as current.
 
-      this.end()
+      this.end(silent)
 
         Select the last element of storage as current.
 
-      this.current(objOrNumber)
+      this.current(objOrNumber, silent)
 
         Return the current element with no aruments.  With obj as an
         argument, select that object as the current object.  With a
         number, select the object at that index in storage as current.
 
-     this.next(loop)
+     this.next(loop, silent)
 
         Return the next element and set it as current, or undefined if
         at the end of storage.  If loop is true, loop around to the
         start and return the first element.
         
-     this.prev(loop)
+     this.prev(loop, silent)
 
         Return the previous element and set it as current, or
         undefined if at the start of storage.  If loop is true, loop

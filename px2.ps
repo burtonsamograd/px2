@@ -269,36 +269,39 @@
                           (@ this length) ")")))))
   (aref (@ this _storage) index))
 
-(defmethod *Model current (objOrNumber)
-  (if objOrNumber
-      (if (= (typeof objOrNumber) "object")
-          (this.at (setf this._current ((@ this index-of) objOrNumber)))
-          (this.at (setf this._current objOrNumber)))
+(defmethod *Model current (objOrNumber silent)
+  (if (not (= objOrNumber undefined))
+      (let ((prev-value (this.at this._current)))
+        (unless silent
+          (trigger this
+                   :change prev-value
+                   "change:current" prev-value))
+        (if (= (typeof objOrNumber) "object")
+            (this.at (setf this._current ((@ this index-of) objOrNumber)))
+            (this.at (setf this._current objOrNumber))))
       (this.at this._current)))
 
-(defmethod *Model start ()
-  (setf this._current 0)
-  ((@ this current)))
+(defmethod *Model start (silent)
+  ((@ this current) 0 silent))
 
-(defmethod *Model end ()
-  (setf this._current (1- this.length))
-  ((@ this current)))
+(defmethod *Model end (silent)
+  ((@ this current) (1- this.length) silent))
 
-(defmethod *Model next (loop)
+(defmethod *Model next (loop silent)
   (if loop
-      (this.at (setf this._current (mod (incf this._current) this.length)))
-      (when (< this._current (1- this.length))
-        (this.at (incf this._current))
-        (this.at this._current))))
+      (this.current (rem (1+ this._current) this.length) silent)
+      (if (< this._current (- this.length 1))
+          (this.current (1+ this._current) silent)
+          undefined)))
 
-(defmethod *Model prev (loop)
+(defmethod *Model prev (loop silent)
   (if loop
       (if (= this._current 0)
-          (this.at (setf this._current (1- this.length)))
-          (this.at (decf this._current)))
-      (when (> this._current 0)
-        (this.at (decf this._current))
-        (this.at this._current))))
+          (this.current (1- this.length) silent)
+          (this.current (1- this._current) silent))
+      (if (> this._current 0)
+        (this.current (1- this._current) silent)
+        undefined)))
 
 (defmethod *Model index-of (obj)
   (let ((i -1))

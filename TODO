@@ -1,3 +1,6 @@
 -- add Model.requuest/ajax, which binds this properly in sucess: and
    failure:.  Write for both node (using request) and browser so that
    node package doesn't depend on jquery.
+
+-- changing current (through current,next,prev,start,end) should send
+   a change and change:current messages
