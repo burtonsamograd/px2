@@ -289,7 +289,7 @@ Model.prototype.at = function (index) {
 };
 Model.prototype.current = function (objornumber) {
     if (objornumber) {
-        return typeof objornumber === 'object' ? (this._current = objornumber) : (this._current = this.indexOf(objornumber));
+        return typeof objornumber === 'object' ? this.at(this._current = this.indexOf(objornumber)) : this.at(this._current = objornumber);
     } else {
         return this.at(this._current);
     };
@@ -304,20 +304,20 @@ Model.prototype.end = function () {
 };
 Model.prototype.next = function (loop) {
     if (loop) {
-        return this._current = (++this._current % this.length + this.length) % this.length;
+        return this.at(this._current = (++this._current % this.length + this.length) % this.length);
     } else {
         if (this._current < this.length - 1) {
-            ++this._current;
+            this.at(++this._current);
             return this.at(this._current);
         };
     };
 };
 Model.prototype.prev = function (loop) {
     if (loop) {
-        return this._current === 0 ? (this._current = this.length - 1) : --this._current;
+        return this._current === 0 ? this.at(this._current = this.length - 1) : this.at(--this._current);
     } else {
         if (this._current > 0) {
-            --this._current;
+            this.at(--this._current);
             return this.at(this._current);
         };
     };

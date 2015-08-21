@@ -272,8 +272,8 @@
 (defmethod *Model current (objOrNumber)
   (if objOrNumber
       (if (= (typeof objOrNumber) "object")
-          (setf this._current objOrNumber)
-          (setf this._current ((@ this index-of) objOrNumber)))
+          (this.at (setf this._current ((@ this index-of) objOrNumber)))
+          (this.at (setf this._current objOrNumber)))
       (this.at this._current)))
 
 (defmethod *Model start ()
@@ -286,18 +286,18 @@
 
 (defmethod *Model next (loop)
   (if loop
-      (setf this._current (mod (incf this._current) this.length))
+      (this.at (setf this._current (mod (incf this._current) this.length)))
       (when (< this._current (1- this.length))
-        (incf this._current)
+        (this.at (incf this._current))
         (this.at this._current))))
 
 (defmethod *Model prev (loop)
   (if loop
       (if (= this._current 0)
-          (setf this._current (1- this.length))
-          (decf this._current))
+          (this.at (setf this._current (1- this.length)))
+          (this.at (decf this._current)))
       (when (> this._current 0)
-        (decf this._current)
+        (this.at (decf this._current))
         (this.at this._current))))
 
 (defmethod *Model index-of (obj)
