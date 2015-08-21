@@ -4,6 +4,9 @@ at different speeds, instruments and keys.
 Made as Hackathon Project upon completion of the Hack Reactor Cloud
 Development BootCamp.
 
+Type 'make index.html' to build Chord Tutor as a single html file, or
+just load dev.html in your browser.
+
 Authors:
 
 Burton Samograd - UI, PX2
