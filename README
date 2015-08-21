@@ -187,7 +187,11 @@ Iterators
       Note: the pattern for iterators is slightly different than other
       languages:
 
-          for(var i = this.start(); i; i = this.next() { ... }
+          for(var i = this.start(); i; i = this.next()) { ... }
+
+      or in reverse:
+      
+          for(var i = this.end(); i; i = this.prev()) { ... }
 
       this.start(silent)
 
