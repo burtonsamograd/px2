@@ -1,17 +1,18 @@
 PX2 - a backbone replacement
 ----------------------------
 
-PX2 is a backbone replacement with a more consistent design:
+PX2 an MV* framework meant to replace backbone, but have a more
+consistent design:
 
    - objects are both objects and containers, of type Model or View
 
-   - containers can be specialized so they only contain a specific
-     type of object
+   - named getters and setters
 
-   - all derived Models can have named getters and setters
+   - containers can be specialized so they only contain a specific
+     type of object and contain members
 
    - Views derived from Model, so they can have members and
-     getter/setters
+     getter/setters and be containers
    
    - objects that 'contain' (by using 'set', 'add', 'push' or
      'insertAt' methods) other objects are passed messages from the
