@@ -1,0 +1,421 @@
+;; -*- mode: lisp -*-
+
+(load "macros.ps")
+
+(defclass *Event () (target value)
+  (setf (@ this target) target
+        (@ this value) value))
+
+(defun magic (options args)
+  (setf (@ this _parents) (array)
+        (@ this _members) (create)
+        (@ this _actions) (create)
+        (@ this _storage) (array))
+  
+  (if (and options (@ options defaults))
+      (for-in (def (@ options defaults))
+              ((@ this create) def (getprop options 'defaults def))))
+             
+  (for-in (k options)
+          (setf (getprop this k) (getprop options k)))
+  
+  (setf this.length 0)
+  (setf this._cursor 0)
+  
+  (setf this.options options)
+  
+  (if (@ this init)
+      ((@ this init apply) this args))
+  this)
+
+(defun *Model (options)
+  (let ((fun (lambda ()
+               ((@ magic call) this options arguments))))
+
+    (setf (@ fun prototype)
+          ((@ *Object create) (@ *Model prototype)))
+    (setf (@ fun prototype constructor) *Model)
+    fun))
+
+(defun *Modelp (value) ;; TODO: this could be better written/more accurate, faster
+  (and (= (typeof value) :object)
+       ((@ *Array is-array) (@ value _storage))
+       ((@ *Array is-array) (@ value _parents))))
+
+(defun add-parent (child parent name)
+  (when (*Modelp child)
+    (let (already-child)
+      ((@ (@ child _parents) for-each)
+       (lambda (p)
+         (setf already-child (or already-child (= parent p)))))
+      (unless already-child
+        ((@ child _parents push) parent)
+        (if name
+            ((@ parent once) (+ :change ":" name) (lambda (e)
+                                                    ((@ child _parents remove) (@ e target))))
+
+            ;; TODO: figure out how to remove this from the parent's action handlers
+            ;; after the object is removed!!! This shouldn't cause a major problem leaving
+            ;; it around, just a performance hit over time due to the excess handlers that
+            ;; could build up in the parent object.
+            ;; A fix is to actually implement this.off, which takes the return value from
+            ;; this.on and will remove the handler from the action list. The trick is to get
+            ;; the return value of the next call into the function that is being passed to
+            ;; it!
+            ((@ parent on) :remove (lambda (e)
+                                     (if (= e.target child)
+                                         ((@ child _parents remove) (@ e target)))))
+            
+            )))))
+
+(defmethod *Model copy ()
+  (let* ((cls (*Model this.options))
+         (obj (new (cls))))
+    ;; copy members
+    (for-in (prop this._members)
+            (obj.destroy prop t)
+            (let ((this-prop (getprop this '_members prop)))
+              (if (*Modelp this-prop)
+                  (obj.create prop
+                              ((@ (getprop this '_members prop) copy)))
+                  (obj.create prop
+                              (if (or ((@ *Array is-array) this-prop)
+                                      (= (typeof this-prop) 'object))
+                                  ((@ *JSON* parse) ((@ *JSON* stringify) this-prop))
+                                  this-prop)))))
+    ;; copy actions
+    (setf (@ obj _actions) (create))
+    (for-in (action (@ this _actions))
+            (let ((old-actions (getprop this '_actions action))
+                  (new-actions (array)))
+              (dolist (old-action old-actions)
+                (if (= (@ old-action self) this)
+                    ((@ new-actions push)
+                        (create :message (@ old-action message)
+                                :fun (@ old-action fun)
+                                :self obj))
+                    ((@ new-actions push)
+                        (create :message (@ old-action message)
+                                :fun (@ old-action fun)
+                                :self (@ old-action self)))))
+              (setf (getprop obj '_actions action) new-actions)))
+    
+    ;; copy storage
+    (let ((new-storage 
+           (this.map (lambda (e)
+                       (if (*Modelp e)
+                           ((@ e copy))
+                           ((@ *JSON* parse) ((@ *JSON* stringify) e)))))))
+      (obj.clear t)
+      ((@ new-storage for-each) (lambda (e)
+                                  (obj.push e t))))
+    obj))
+  
+(defmethod *Model get (name loud)
+  (if (not ((@ this _members has-own-property) name))
+      (throw (new (*Error (+ "Attempt to get a property " name " that does not exist.")))))
+  (when loud
+    (trigger this 
+             :get this[name]
+             (+ :get ":" name) this[name]))
+    (getprop this '_members name))
+
+(defun getset (name value silent)
+  (if (= (@ arguments length) 1)
+      ((@ this get) name)
+      ((@ this set) name value silent)))
+      
+(defmethod *Model create (name value silent)
+  (if ((@ this _members has-own-property) name)
+      (throw (new (*Error (+ "Attempt to create property " name " that already exists.")))))
+
+  (setf (getprop this '_members name) value
+        (getprop this name) ((@ getset bind) this name))
+  
+  (add-parent value this name)
+  (unless silent
+    (trigger this
+             :create value
+             (+ :create ":" name) value))
+  value)
+              
+(defmethod *Model set (name value silent)
+  (if (not ((@ this _members has-own-property) name))
+      (throw (new (*Error (+ "Attempt to set a property " name " that does not exist.")))))
+
+  (let ((old-value (getprop this '_members name)))
+    (setf (getprop this '_members name) value)
+    (unless silent
+      (trigger this 
+               :change old-value
+               (+ :change ":" name) old-value))
+    (add-parent value this name))
+  value)
+
+(defmethod *Model destroy (name)
+  (let ((value (getprop this '_members name)))
+    (delete (getprop this '_members name))                  ; remove property 
+    (delete (getprop this '_actions (+ :change ":" name))); remove change action
+    (delete (getprop this name))                          ; remove named getter/setter
+    (trigger this :destroy value)))
+
+(defmethod *Model trigger (message value target)
+  (let ((actions (getprop this '_actions message))
+        trigger-parents)
+    (if actions
+        (let ((event (new (*Event (or target this) value)))
+              (to-remove (array)))
+          (dolist (action actions)
+            (when (= ((@ action fun call) (@ action self) event) t)
+              (setf trigger-parents t))
+            (if (@ action once)
+                ((@ to-remove push) action)))
+          (dolist (action to-remove)
+            ((@ actions remove) action)))
+        (setf trigger-parents t))
+    (when trigger-parents
+      (dolist (parent (@ this _parents))
+        (unless (= parent target) ;; don't blow the stack when x contains y and y contains x
+          ((@ this trigger call) parent message value (or target this)))))))
+
+;; TODO: refactor on and once
+(defmethod *Model on (message fun self)
+  (let ((action (create :message message
+                        :fun fun
+                        :self (or self this))))
+    (if (not (getprop this '_actions message))
+        (setf (getprop this '_actions message) (array action))
+        ((getprop this '_actions message 'push) action))
+    action))
+
+(defmethod *Model once (message fun self)
+  (let ((action (create :message message
+                        :fun fun
+                        :self (or self this)
+                        :once t)))
+    (if (not (getprop this '_actions message))
+        (setf (getprop this '_actions message) (array action))
+        ((getprop this '_actions message 'push) action))
+    action))
+
+
+(defmethod *Model push (obj silent)
+  (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
+      (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
+  (add-parent obj this)
+  ((@ this _storage push) obj)
+  (setf (@ this length) (@ this _storage length))
+  (unless silent
+    (trigger this
+             :add obj
+             :modified (array obj)))
+  obj)
+
+(defmethod *Model add (obj silent)
+  (if (and (@ this contains) (not (= (@ obj type) (@ this contains))))
+      (throw (new (*Error (+ "Attempt to push " (@ obj type) "into container for " (@ this contains))))))
+  (when (not ((@ this find) obj))
+    ((@ this push) obj silent))
+  obj)
+
+(defmethod *Model insert-at (i obj silent)
+  ((@ (@ this _storage) splice) i 0 obj)
+  (incf this.length)
+  (add-parent obj this)
+  (unless silent
+    (trigger this
+             :add obj
+             :modified (array obj)))
+  obj)
+
+(defmethod *Model swap (i j silent)
+  (let ((a (this.at i))
+        (b (this.at j)))
+    (setf this._storage[i] b
+          this._storage[j] a)
+    (unless silent
+      (trigger this
+               :modified (array a b)))
+    t))
+
+(defmethod *Model remove (obj silent)
+  (let ((retval ((@ this _storage remove) obj)))
+    (when retval
+      (decf (@ this length))
+      (when (*Modelp obj)
+        ((@ obj _parents remove) this))
+      (unless silent
+        (trigger this
+                 :remove obj
+                 :modified (array obj))))
+    retval))
+
+(defmethod *Model clear (silent)
+  (let ((old-storage (@ this _storage)))
+    (setf (@ this _storage) (array)
+          (@ this length) 0)
+    (dolist (thing old-storage)
+      (when (*Modelp thing)
+        ((@ thing _parents remove) this)))
+    (unless silent
+      (trigger this
+               :clear this
+               :modified old-storage))))
+
+(defmethod *Model at (index)
+  (when (>= index (@ this length))
+    (throw (new (*Error (+ "attempt to index (" index
+                          ") out of range of object ("
+                          (@ this length) ")")))))
+  (aref (@ this _storage) index))
+
+(defmethod *Model current (objOrNumber silent)
+  (if (not (= objOrNumber undefined))
+      (let ((prev-value (this.at this._current)))
+        (unless silent
+          (trigger this
+                   :change prev-value
+                   "change:current" prev-value))
+        (if (= (typeof objOrNumber) "object")
+            (this.at (setf this._current ((@ this index-of) objOrNumber)))
+            (this.at (setf this._current objOrNumber))))
+      (this.at this._current)))
+
+(defmethod *Model start (silent)
+  ((@ this current) 0 silent))
+
+(defmethod *Model end (silent)
+  ((@ this current) (1- this.length) silent))
+
+(defmethod *Model next (loop silent)
+  (if loop
+      (this.current (rem (1+ this._current) this.length) silent)
+      (if (< this._current (- this.length 1))
+          (this.current (1+ this._current) silent)
+          undefined)))
+
+(defmethod *Model prev (loop silent)
+  (if loop
+      (if (= this._current 0)
+          (this.current (1- this.length) silent)
+          (this.current (1- this._current) silent))
+      (if (> this._current 0)
+        (this.current (1- this._current) silent)
+        undefined)))
+
+(defmethod *Model index-of (obj)
+  (let ((i -1))
+    (and (this.find (lambda (it)
+                      (incf i)
+                      (= it obj)))
+         i)))
+
+(defmethod *Model each (fun self)
+  (let ((self (or self this)))
+    (dolist (item (@ this _storage))
+      ((@ fun call) self item))))
+
+(defmethod *Model for-in (fun self)
+  (let ((self (or self this)))
+    (for-in (k (@ this _members))
+            ((@ fun call) self k (getprop this '_members k)))))
+
+(defmethod *Model map (fun self)
+  (let ((result '())
+        (self (or self this)))
+    (dolist (item (@ this _storage))
+      ((@ result push) ((@ fun call) self item)))
+    result))
+
+(defmethod *Model filter (fun self)
+  (let ((result '())
+        (self (or self this)))
+    (dolist (item (@ this _storage))
+      (when ((@ fun call) self item)
+        ((@ result push) item)))
+    result))
+
+(defmethod *Model find (fun-or-obj self)
+  (if (= (typeof fun-or-obj) :function)
+      (dolist (item (@ this _storage))
+        (when ((@ fun-or-obj call) (or self this) item)
+          (return-from find item)))
+      (dolist (item (@ this _storage))
+          (when (= fun-or-obj item)
+            (return-from find item)))))
+
+(defmethod *Model sort (fun silent)
+  ((@ this _storage sort) fun)
+  (unless silent
+    (trigger this
+             :modified (@ this _storage)))
+  this)
+
+(defun *View (options)
+       (let ((fun (lambda (model)
+                  (setf (@ this model) model
+                        (@ this $el) ($ :<div>))
+                  (when options
+                    (when (@ options tag-name)
+                      (setf (@ this $el) ($ (+ "<" (@ options tag-name) ">"))))
+                    
+                    (when (@ options style)
+                      ((@ this $el css) (@ options style)))
+                    
+                    (when (@ options model)
+                      (setf (getprop this (@ options model)) model))
+                    
+                    ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
+                    
+                    ;; Add a default render function if none was provided
+                    (unless (@ options render)
+                      (if (@ options render-augmented)
+                          (setf (@ this render) (@ options render-augmented))
+                          (setf (@ this render) (lambda ()
+                                                  (@ this $el)))))
+                    
+                    ;; Augment the render function to automatically detach children
+                    ;; (keeps event handlers from being lost)
+                    (when (@ options render)
+                      (unless (@ options render-augmented)
+                        (progn
+                          (setf (@ this render)
+                                (lambda ()
+                                  ((@ ((@ this $el children)) detach))
+                                  ((@ (@ options original-render) call) this)))
+                          (setf (@ options render-augmented) (@ this render))
+                          (setf (@ options original-render) (@ options render))
+                          (delete (@ options render)))))
+
+                    ;; Augment the init function to automatically call this.render() for Views
+                    ;; or give a default init that calls render if none was provided
+                    (unless (@ options init)
+                      (if (@ options init-augmented)
+                          (setf (@ this init) (@ options init-augmented))
+                          (setf (@ this init) (lambda () (this.render)))))
+
+                    (when (@ options init)
+                      (unless (@ options init-augmented)
+                        (progn
+                          (setf (@ this init)
+                                (lambda ()
+                                  ((@ (@ options original-init) apply) this arguments)
+                                  ((@ this render))))
+                          (setf (@ options init-augmented) (@ this init))
+                          (setf (@ options original-init) (@ options init))
+                          (delete (@ options init)))))
+
+                    (when (@ options events)
+                      (for-in (event (@ options events))
+                              ((@ this $el on) event ((getprop options 'events event 'bind) this))))
+
+                    ((@ magic call) this options arguments)
+                    this
+                    ))))
+         (setf (@ fun prototype)
+               ((@ *Object create) (@ *Model prototype)))
+         (setf (@ fun prototype constructor) *View)
+         fun))
+
+
+(export *Model *View)

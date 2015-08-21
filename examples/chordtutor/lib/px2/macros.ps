@@ -1,0 +1,69 @@
+;; -*- mode: lisp -*-
+
+;; use "ps2js --eval '(defconstant +debug+ t)' ..." to allow debug forms in output
+(defmacro debug (form)
+  (when (boundp '+debug+)
+    form))
+
+(defmacro alambda (args &body body)
+  `(lambda ,args
+     (block alambda
+       ,@body)))
+
+(setf (@ *Array prototype remove)
+      (alambda (thing)
+               (let ((i 0))
+                 (dolist (x this)
+                   (when (= x thing)
+                     ((@ this splice) i 1)
+                     ;; TODO: add unit test to ensure remove actually removes from the element
+                     (return-from alambda t))
+                   (incf i)))
+                 nil))
+
+(defmacro defclass (name super args &body constructor)
+  (let ((inherits '()))
+    `(progn
+       (defun ,name ,args
+         ,@constructor
+         ,(when super
+              `((@ ,(car super) apply) this arguments))
+         this)
+       ,@(progn
+         (dolist (parent super)
+           (push `(setf (@ ,name prototype)
+                        ((@ *Object create) (@ ,parent prototype)))
+                 inherits))
+         inherits)
+       ,(when super
+              `(setf (@ ,name prototype constructor) ,name))
+       )))
+                                                                 
+(defmacro defmethod (class method args &body body)
+  `(setf (@ ,class prototype ,method)
+         (lambda ,args
+           (block ,method
+             ,@body))))
+
+(eval-when (:compile-toplevel)
+  (defun group (list)
+    "group elements 2 by 2 from list, reverse order"
+    (let (l1 l2)
+      (while list
+        (push (pop list) l1)
+        (push (pop list) l2))
+      (map 'list (lambda (x y) (list x y)) l1 l2))))
+
+(defmacro trigger (self &rest args)
+  (let (code)
+    (dolist (event (group args))
+      (push `((@ ,self trigger) ,@event) code))
+    (push 'progn code)))
+
+(defmacro export (&rest values)
+  (let (results)
+    (dolist (value values)
+      (push `(unless (= (typeof module) "undefined")
+               (setf (@ module exports ,value) ,value)) results))
+    (append '(progn) (nreverse results))))
+    
