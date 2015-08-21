@@ -56,5 +56,11 @@ module.exports = function (constructor) {
             expect(obj.a).to.equal(undefined);
             expect(obj._actions['change:a']).to.be.undefined;
         });
+
+        it('set should return the value it is passed', function () {
+            expect(obj.set('a', 3)).to.equal(3);
+            expect(obj.a(2)).to.equal(2);
+        });
+
     });
 }

@@ -1,2 +1,1 @@
--- add test to ensure this.render is automatically called for views
--- write test to ensure that set returns the value it is passed
+
