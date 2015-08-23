@@ -313,8 +313,6 @@ Models give.
 View example
 ------------
 
-    var View = require("px2").View;
-    
     var PointsView = View({
         // optional, but handy for debugging and is the default class if
         // className is not defined (below)
