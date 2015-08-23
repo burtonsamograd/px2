@@ -1,0 +1,39 @@
+;; -*- mode: lisp -*-
+
+;; PX2 shortcut macros to reduce noise and save some parens on
+;; named get and set (both quiet and loud versions)
+(defmacro ? (self member) ;; normal get
+  `((@ ,self ,member)))
+
+(defmacro ?? (self member) ;; loud get
+  `((@ ,self get) ',member true))
+
+(defmacro ! (self member value) ;; set
+  `((@ ,self ,member) ,value))
+
+(defmacro !? (self member value) ;; quiet set
+  `((@ ,self set) ',member ,value true))
+
+;; PX2 convenience macros for defining Models, Views, Controllers and
+;; Containers
+(defmacro defmodel (name &rest options)
+  `(defvar ,name (*Model (create
+                          type ',name
+                          ,@options))))
+
+(defmacro defview (name &rest options)
+  `(defvar ,name (*View (create
+                         type ',name
+                         ,@options))))
+
+(defmacro defcontroller (name &rest options)
+  `(defvar ,name (*Model (create
+                          type ',name
+                          ,@options))))
+
+(defmacro defcontainer (name contains &rest options)
+  `(defvar ,name (*Model (create
+                          type ',name
+                          contains ',contains
+                          ,@options))))
+
