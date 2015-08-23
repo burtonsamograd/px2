@@ -1,3 +1,4 @@
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -10,11 +11,29 @@ Array.prototype.remove = function (thing) {
     };
     return null;
 };
+/* (DEFCLASS *EVENT NIL (TARGET VALUE)
+             (SETF (@ THIS TARGET) TARGET
+                   (@ THIS VALUE) VALUE)) */
 function Event(target, value) {
     this.target = target;
     this.value = value;
     return this;
 };
+/* (DEFUN MAGIC (OPTIONS ARGS)
+     (SETF (@ THIS _PARENTS) (ARRAY)
+           (@ THIS _MEMBERS) (CREATE)
+           (@ THIS _ACTIONS) (CREATE)
+           (@ THIS _STORAGE) (ARRAY))
+     (IF (AND OPTIONS (@ OPTIONS DEFAULTS))
+         (FOR-IN (DEF (@ OPTIONS DEFAULTS))
+                 ((@ THIS CREATE) DEF (GETPROP OPTIONS 'DEFAULTS DEF))))
+     (FOR-IN (K OPTIONS) (SETF (GETPROP THIS K) (GETPROP OPTIONS K)))
+     (SETF THIS.LENGTH 0)
+     (SETF THIS._CURSOR 0)
+     (SETF THIS.OPTIONS OPTIONS)
+     (IF (@ THIS INIT)
+         ((@ THIS INIT APPLY) THIS ARGS))
+     THIS) */
 function magic(options, args) {
     this._parents = [];
     this._members = {  };
@@ -36,6 +55,11 @@ function magic(options, args) {
     };
     return this;
 };
+/* (DEFUN *MODEL (OPTIONS)
+     (LET ((FUN (LAMBDA () ((@ MAGIC CALL) THIS OPTIONS ARGUMENTS))))
+       (SETF (@ FUN PROTOTYPE) ((@ *OBJECT CREATE) (@ *MODEL PROTOTYPE)))
+       (SETF (@ FUN PROTOTYPE CONSTRUCTOR) *MODEL)
+       FUN)) */
 function Model(options) {
     var fun = function () {
         return magic.call(this, options, arguments);
@@ -44,9 +68,26 @@ function Model(options) {
     fun.prototype.constructor = Model;
     return fun;
 };
+/* (DEFUN *MODELP (VALUE)
+     (AND (= (TYPEOF VALUE) OBJECT) ((@ *ARRAY IS-ARRAY) (@ VALUE _STORAGE))
+          ((@ *ARRAY IS-ARRAY) (@ VALUE _PARENTS)))) */
 function Modelp(value) {
     return typeof value === 'object' && Array.isArray(value._storage) && Array.isArray(value._parents);
 };
+/* (DEFUN ADD-PARENT (CHILD PARENT NAME)
+     (WHEN (*MODELP CHILD)
+       (LET (ALREADY-CHILD)
+         ((@ (@ CHILD _PARENTS) FOR-EACH)
+          (LAMBDA (P) (SETF ALREADY-CHILD (OR ALREADY-CHILD (= PARENT P)))))
+         (UNLESS ALREADY-CHILD
+           ((@ CHILD _PARENTS PUSH) PARENT)
+           (IF NAME
+               ((@ PARENT ONCE) (+ CHANGE : NAME)
+                (LAMBDA (E) ((@ CHILD _PARENTS REMOVE) (@ E TARGET))))
+               ((@ PARENT ON) REMOVE
+                (LAMBDA (E)
+                  (IF (= E.TARGET CHILD)
+                      ((@ CHILD _PARENTS REMOVE) (@ E TARGET)))))))))) */
 function addParent(child, parent, name) {
     if (Modelp(child)) {
         var alreadyChild = null;
@@ -67,6 +108,39 @@ function addParent(child, parent, name) {
         };
     };
 };
+/* (DEFMETHOD *MODEL COPY ()
+     (LET* ((CLS (*MODEL THIS.OPTIONS)) (OBJ (NEW (CLS))))
+       (FOR-IN (PROP THIS._MEMBERS) (OBJ.DESTROY PROP T)
+               (LET ((THIS-PROP (GETPROP THIS '_MEMBERS PROP)))
+                 (IF (*MODELP THIS-PROP)
+                     (OBJ.CREATE PROP ((@ (GETPROP THIS '_MEMBERS PROP) COPY)))
+                     (OBJ.CREATE PROP
+                      (IF (OR ((@ *ARRAY IS-ARRAY) THIS-PROP)
+                              (= (TYPEOF THIS-PROP) 'OBJECT))
+                          ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) THIS-PROP))
+                          THIS-PROP)))))
+       (SETF (@ OBJ _ACTIONS) (CREATE))
+       (FOR-IN (ACTION (@ THIS _ACTIONS))
+               (LET ((OLD-ACTIONS (GETPROP THIS '_ACTIONS ACTION))
+                     (NEW-ACTIONS (ARRAY)))
+                 (DOLIST (OLD-ACTION OLD-ACTIONS)
+                   (IF (= (@ OLD-ACTION SELF) THIS)
+                       ((@ NEW-ACTIONS PUSH)
+                        (CREATE MESSAGE (@ OLD-ACTION MESSAGE) FUN
+                         (@ OLD-ACTION FUN) SELF OBJ))
+                       ((@ NEW-ACTIONS PUSH)
+                        (CREATE MESSAGE (@ OLD-ACTION MESSAGE) FUN
+                         (@ OLD-ACTION FUN) SELF (@ OLD-ACTION SELF)))))
+                 (SETF (GETPROP OBJ '_ACTIONS ACTION) NEW-ACTIONS)))
+       (LET ((NEW-STORAGE
+              (THIS.MAP
+               (LAMBDA (E)
+                 (IF (*MODELP E)
+                     ((@ E COPY))
+                     ((@ *JSON* PARSE) ((@ *JSON* STRINGIFY) E)))))))
+         (OBJ.CLEAR T)
+         ((@ NEW-STORAGE FOR-EACH) (LAMBDA (E) (OBJ.PUSH E T))))
+       OBJ)) */
 Model.prototype.copy = function () {
     var cls = Model(this.options);
     var obj = new cls();
@@ -108,6 +182,14 @@ Model.prototype.copy = function () {
     });
     return obj;
 };
+/* (DEFMETHOD *MODEL GET (NAME LOUD)
+     (IF (NOT ((@ THIS _MEMBERS HAS-OWN-PROPERTY) NAME))
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to get a property  NAME  that does not exist.)))))
+     (WHEN LOUD (TRIGGER THIS GET THIS[NAME] (+ GET : NAME) THIS[NAME]))
+     (GETPROP THIS '_MEMBERS NAME)) */
 Model.prototype.get = function (name, loud) {
     if (!this._members.hasOwnProperty(name)) {
         throw new Error('Attempt to get a property ' + name + ' that does not exist.');
@@ -118,9 +200,24 @@ Model.prototype.get = function (name, loud) {
     };
     return this._members[name];
 };
+/* (DEFUN GETSET (NAME VALUE SILENT)
+     (IF (= (@ ARGUMENTS LENGTH) 1)
+         ((@ THIS GET) NAME)
+         ((@ THIS SET) NAME VALUE SILENT))) */
 function getset(name, value, silent) {
     return arguments.length === 1 ? this.get(name) : this.set(name, value, silent);
 };
+/* (DEFMETHOD *MODEL CREATE (NAME VALUE SILENT)
+     (IF ((@ THIS _MEMBERS HAS-OWN-PROPERTY) NAME)
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to create property  NAME  that already exists.)))))
+     (SETF (GETPROP THIS '_MEMBERS NAME) VALUE
+           (GETPROP THIS NAME) ((@ GETSET BIND) THIS NAME))
+     (ADD-PARENT VALUE THIS NAME)
+     (UNLESS SILENT (TRIGGER THIS CREATE VALUE (+ CREATE : NAME) VALUE))
+     VALUE) */
 Model.prototype.create = function (name, value, silent) {
     if (this._members.hasOwnProperty(name)) {
         throw new Error('Attempt to create property ' + name + ' that already exists.');
@@ -134,6 +231,18 @@ Model.prototype.create = function (name, value, silent) {
     };
     return value;
 };
+/* (DEFMETHOD *MODEL SET (NAME VALUE SILENT)
+     (IF (NOT ((@ THIS _MEMBERS HAS-OWN-PROPERTY) NAME))
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to set a property  NAME  that does not exist.)))))
+     (LET ((OLD-VALUE (GETPROP THIS '_MEMBERS NAME)))
+       (SETF (GETPROP THIS '_MEMBERS NAME) VALUE)
+       (UNLESS SILENT
+         (TRIGGER THIS CHANGE OLD-VALUE (+ CHANGE : NAME) OLD-VALUE))
+       (ADD-PARENT VALUE THIS NAME))
+     VALUE) */
 Model.prototype.set = function (name, value, silent) {
     if (!this._members.hasOwnProperty(name)) {
         throw new Error('Attempt to set a property ' + name + ' that does not exist.');
@@ -147,6 +256,12 @@ Model.prototype.set = function (name, value, silent) {
     addParent(value, this, name);
     return value;
 };
+/* (DEFMETHOD *MODEL DESTROY (NAME)
+     (LET ((VALUE (GETPROP THIS '_MEMBERS NAME)))
+       (DELETE (GETPROP THIS '_MEMBERS NAME))
+       (DELETE (GETPROP THIS '_ACTIONS (+ CHANGE : NAME)))
+       (DELETE (GETPROP THIS NAME))
+       (TRIGGER THIS DESTROY VALUE))) */
 Model.prototype.destroy = function (name) {
     var value = this._members[name];
     delete this._members[name];
@@ -154,6 +269,22 @@ Model.prototype.destroy = function (name) {
     delete this[name];
     return this.trigger('destroy', value);
 };
+/* (DEFMETHOD *MODEL TRIGGER (MESSAGE VALUE TARGET)
+     (LET ((ACTIONS (GETPROP THIS '_ACTIONS MESSAGE)) TRIGGER-PARENTS)
+       (IF ACTIONS
+           (LET ((EVENT (NEW (*EVENT (OR TARGET THIS) VALUE)))
+                 (TO-REMOVE (ARRAY)))
+             (DOLIST (ACTION ACTIONS)
+               (WHEN (= ((@ ACTION FUN CALL) (@ ACTION SELF) EVENT) T)
+                 (SETF TRIGGER-PARENTS T))
+               (IF (@ ACTION ONCE)
+                   ((@ TO-REMOVE PUSH) ACTION)))
+             (DOLIST (ACTION TO-REMOVE) ((@ ACTIONS REMOVE) ACTION)))
+           (SETF TRIGGER-PARENTS T))
+       (WHEN TRIGGER-PARENTS
+         (DOLIST (PARENT (@ THIS _PARENTS))
+           (UNLESS (= PARENT TARGET)
+             ((@ THIS TRIGGER CALL) PARENT MESSAGE VALUE (OR TARGET THIS))))))) */
 Model.prototype.trigger = function (message, value, target) {
     var actions = this._actions[message];
     var triggerParents = null;
@@ -185,6 +316,12 @@ Model.prototype.trigger = function (message, value, target) {
         };
     };
 };
+/* (DEFMETHOD *MODEL ON (MESSAGE FUN SELF)
+     (LET ((ACTION (CREATE MESSAGE MESSAGE FUN FUN SELF (OR SELF THIS))))
+       (IF (NOT (GETPROP THIS '_ACTIONS MESSAGE))
+           (SETF (GETPROP THIS '_ACTIONS MESSAGE) (ARRAY ACTION))
+           ((GETPROP THIS '_ACTIONS MESSAGE 'PUSH) ACTION))
+       ACTION)) */
 Model.prototype.on = function (message, fun, self) {
     var action = { 'message' : message,
                    'fun' : fun,
@@ -197,6 +334,12 @@ Model.prototype.on = function (message, fun, self) {
     };
     return action;
 };
+/* (DEFMETHOD *MODEL ONCE (MESSAGE FUN SELF)
+     (LET ((ACTION (CREATE MESSAGE MESSAGE FUN FUN SELF (OR SELF THIS) ONCE T)))
+       (IF (NOT (GETPROP THIS '_ACTIONS MESSAGE))
+           (SETF (GETPROP THIS '_ACTIONS MESSAGE) (ARRAY ACTION))
+           ((GETPROP THIS '_ACTIONS MESSAGE 'PUSH) ACTION))
+       ACTION)) */
 Model.prototype.once = function (message, fun, self) {
     var action = { 'message' : message,
                    'fun' : fun,
@@ -210,6 +353,18 @@ Model.prototype.once = function (message, fun, self) {
     };
     return action;
 };
+/* (DEFMETHOD *MODEL PUSH (OBJ SILENT)
+     (IF (AND (@ THIS CONTAINS) (NOT (= (@ OBJ TYPE) (@ THIS CONTAINS))))
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to push  (@ OBJ TYPE) into container for
+                  (@ THIS CONTAINS))))))
+     (ADD-PARENT OBJ THIS)
+     ((@ THIS _STORAGE PUSH) OBJ)
+     (SETF (@ THIS LENGTH) (@ THIS _STORAGE LENGTH))
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
+     OBJ) */
 Model.prototype.push = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
@@ -223,6 +378,15 @@ Model.prototype.push = function (obj, silent) {
     };
     return obj;
 };
+/* (DEFMETHOD *MODEL ADD (OBJ SILENT)
+     (IF (AND (@ THIS CONTAINS) (NOT (= (@ OBJ TYPE) (@ THIS CONTAINS))))
+         (THROW
+             (NEW
+              (*ERROR
+               (+ Attempt to push  (@ OBJ TYPE) into container for
+                  (@ THIS CONTAINS))))))
+     (WHEN (NOT ((@ THIS FIND) OBJ)) ((@ THIS PUSH) OBJ SILENT))
+     OBJ) */
 Model.prototype.add = function (obj, silent) {
     if (this.contains && obj.type !== this.contains) {
         throw new Error('Attempt to push ' + obj.type + 'into container for ' + this.contains);
@@ -232,6 +396,12 @@ Model.prototype.add = function (obj, silent) {
     };
     return obj;
 };
+/* (DEFMETHOD *MODEL INSERT-AT (I OBJ SILENT)
+     ((@ (@ THIS _STORAGE) SPLICE) I 0 OBJ)
+     (INCF THIS.LENGTH)
+     (ADD-PARENT OBJ THIS)
+     (UNLESS SILENT (TRIGGER THIS ADD OBJ MODIFIED (ARRAY OBJ)))
+     OBJ) */
 Model.prototype.insertAt = function (i, obj, silent) {
     this._storage.splice(i, 0, obj);
     ++this.length;
@@ -242,6 +412,12 @@ Model.prototype.insertAt = function (i, obj, silent) {
     };
     return obj;
 };
+/* (DEFMETHOD *MODEL SWAP (I J SILENT)
+     (LET ((A (THIS.AT I)) (B (THIS.AT J)))
+       (SETF THIS._STORAGE[I] B
+             THIS._STORAGE[J] A)
+       (UNLESS SILENT (TRIGGER THIS MODIFIED (ARRAY A B)))
+       T)) */
 Model.prototype.swap = function (i, j, silent) {
     var a = this.at(i);
     var b = this.at(j);
@@ -252,6 +428,13 @@ Model.prototype.swap = function (i, j, silent) {
     };
     return true;
 };
+/* (DEFMETHOD *MODEL REMOVE (OBJ SILENT)
+     (LET ((RETVAL ((@ THIS _STORAGE REMOVE) OBJ)))
+       (WHEN RETVAL
+         (DECF (@ THIS LENGTH))
+         (WHEN (*MODELP OBJ) ((@ OBJ _PARENTS REMOVE) THIS))
+         (UNLESS SILENT (TRIGGER THIS REMOVE OBJ MODIFIED (ARRAY OBJ))))
+       RETVAL)) */
 Model.prototype.remove = function (obj, silent) {
     var retval = this._storage.remove(obj);
     if (retval) {
@@ -266,6 +449,13 @@ Model.prototype.remove = function (obj, silent) {
     };
     return retval;
 };
+/* (DEFMETHOD *MODEL CLEAR (SILENT)
+     (LET ((OLD-STORAGE (@ THIS _STORAGE)))
+       (SETF (@ THIS _STORAGE) (ARRAY)
+             (@ THIS LENGTH) 0)
+       (DOLIST (THING OLD-STORAGE)
+         (WHEN (*MODELP THING) ((@ THING _PARENTS REMOVE) THIS)))
+       (UNLESS SILENT (TRIGGER THIS CLEAR THIS MODIFIED OLD-STORAGE)))) */
 Model.prototype.clear = function (silent) {
     var oldStorage = this._storage;
     this._storage = [];
@@ -281,12 +471,29 @@ Model.prototype.clear = function (silent) {
         return this.trigger('modified', oldStorage);
     };
 };
+/* (DEFMETHOD *MODEL AT (INDEX)
+     (WHEN (>= INDEX (@ THIS LENGTH))
+       (THROW
+           (NEW
+            (*ERROR
+             (+ attempt to index ( INDEX ) out of range of object (
+                (@ THIS LENGTH) ))))))
+     (AREF (@ THIS _STORAGE) INDEX)) */
 Model.prototype.at = function (index) {
     if (index >= this.length) {
         throw new Error('attempt to index (' + index + ') out of range of object (' + this.length + ')');
     };
     return this._storage[index];
 };
+/* (DEFMETHOD *MODEL CURRENT (OBJORNUMBER SILENT)
+     (IF (NOT (= OBJORNUMBER UNDEFINED))
+         (LET ((PREV-VALUE (THIS.AT THIS._CURRENT)))
+           (UNLESS SILENT
+             (TRIGGER THIS CHANGE PREV-VALUE change:current PREV-VALUE))
+           (IF (= (TYPEOF OBJORNUMBER) object)
+               (THIS.AT (SETF THIS._CURRENT ((@ THIS INDEX-OF) OBJORNUMBER)))
+               (THIS.AT (SETF THIS._CURRENT OBJORNUMBER))))
+         (THIS.AT THIS._CURRENT))) */
 Model.prototype.current = function (objornumber, silent) {
     if (objornumber !== undefined) {
         var prevValue = this.at(this._current);
@@ -299,12 +506,20 @@ Model.prototype.current = function (objornumber, silent) {
         return this.at(this._current);
     };
 };
+/* (DEFMETHOD *MODEL START (SILENT) ((@ THIS CURRENT) 0 SILENT)) */
 Model.prototype.start = function (silent) {
     return this.current(0, silent);
 };
+/* (DEFMETHOD *MODEL END (SILENT) ((@ THIS CURRENT) (1- THIS.LENGTH) SILENT)) */
 Model.prototype.end = function (silent) {
     return this.current(this.length - 1, silent);
 };
+/* (DEFMETHOD *MODEL NEXT (LOOP SILENT)
+     (IF LOOP
+         (THIS.CURRENT (REM (1+ THIS._CURRENT) THIS.LENGTH) SILENT)
+         (IF (< THIS._CURRENT (- THIS.LENGTH 1))
+             (THIS.CURRENT (1+ THIS._CURRENT) SILENT)
+             UNDEFINED))) */
 Model.prototype.next = function (loop, silent) {
     if (loop) {
         return this.current((this._current + 1) % this.length, silent);
@@ -312,6 +527,14 @@ Model.prototype.next = function (loop, silent) {
         return this._current < this.length - 1 ? this.current(this._current + 1, silent) : undefined;
     };
 };
+/* (DEFMETHOD *MODEL PREV (LOOP SILENT)
+     (IF LOOP
+         (IF (= THIS._CURRENT 0)
+             (THIS.CURRENT (1- THIS.LENGTH) SILENT)
+             (THIS.CURRENT (1- THIS._CURRENT) SILENT))
+         (IF (> THIS._CURRENT 0)
+             (THIS.CURRENT (1- THIS._CURRENT) SILENT)
+             UNDEFINED))) */
 Model.prototype.prev = function (loop, silent) {
     if (loop) {
         return this._current === 0 ? this.current(this.length - 1, silent) : this.current(this._current - 1, silent);
@@ -319,6 +542,9 @@ Model.prototype.prev = function (loop, silent) {
         return this._current > 0 ? this.current(this._current - 1, silent) : undefined;
     };
 };
+/* (DEFMETHOD *MODEL INDEX-OF (OBJ)
+     (LET ((I -1))
+       (AND (THIS.FIND (LAMBDA (IT) (INCF I) (= IT OBJ))) I))) */
 Model.prototype.indexOf = function (obj) {
     var i = -1;
     return this.find(function (it) {
@@ -326,6 +552,9 @@ Model.prototype.indexOf = function (obj) {
         return it === obj;
     }) && i;
 };
+/* (DEFMETHOD *MODEL EACH (FUN SELF)
+     (LET ((SELF (OR SELF THIS)))
+       (DOLIST (ITEM (@ THIS _STORAGE)) ((@ FUN CALL) SELF ITEM)))) */
 Model.prototype.each = function (fun, self) {
     var self9 = self || this;
     for (var item = null, _js_arrvar11 = this._storage, _js_idx10 = 0; _js_idx10 < _js_arrvar11.length; _js_idx10 += 1) {
@@ -333,12 +562,21 @@ Model.prototype.each = function (fun, self) {
         fun.call(self9, item);
     };
 };
+/* (DEFMETHOD *MODEL FOR-IN (FUN SELF)
+     (LET ((SELF (OR SELF THIS)))
+       (FOR-IN (K (@ THIS _MEMBERS))
+               ((@ FUN CALL) SELF K (GETPROP THIS '_MEMBERS K))))) */
 Model.prototype.forIn = function (fun, self) {
     var self12 = self || this;
     for (var k in this._members) {
         fun.call(self12, k, this._members[k]);
     };
 };
+/* (DEFMETHOD *MODEL MAP (FUN SELF)
+     (LET ((RESULT 'NIL) (SELF (OR SELF THIS)))
+       (DOLIST (ITEM (@ THIS _STORAGE))
+         ((@ RESULT PUSH) ((@ FUN CALL) SELF ITEM)))
+       RESULT)) */
 Model.prototype.map = function (fun, self) {
     var result = [];
     var self13 = self || this;
@@ -348,6 +586,11 @@ Model.prototype.map = function (fun, self) {
     };
     return result;
 };
+/* (DEFMETHOD *MODEL FILTER (FUN SELF)
+     (LET ((RESULT 'NIL) (SELF (OR SELF THIS)))
+       (DOLIST (ITEM (@ THIS _STORAGE))
+         (WHEN ((@ FUN CALL) SELF ITEM) ((@ RESULT PUSH) ITEM)))
+       RESULT)) */
 Model.prototype.filter = function (fun, self) {
     var result = [];
     var self16 = self || this;
@@ -359,6 +602,13 @@ Model.prototype.filter = function (fun, self) {
     };
     return result;
 };
+/* (DEFMETHOD *MODEL FIND (FUN-OR-OBJ SELF)
+     (IF (= (TYPEOF FUN-OR-OBJ) FUNCTION)
+         (DOLIST (ITEM (@ THIS _STORAGE))
+           (WHEN ((@ FUN-OR-OBJ CALL) (OR SELF THIS) ITEM)
+             (RETURN-FROM FIND ITEM)))
+         (DOLIST (ITEM (@ THIS _STORAGE))
+           (WHEN (= FUN-OR-OBJ ITEM) (RETURN-FROM FIND ITEM))))) */
 Model.prototype.find = function (funOrObj, self) {
     if (typeof funOrObj === 'function') {
         for (var item = null, _js_arrvar22 = this._storage, _js_idx21 = 0; _js_idx21 < _js_arrvar22.length; _js_idx21 += 1) {
@@ -376,6 +626,10 @@ Model.prototype.find = function (funOrObj, self) {
         };
     };
 };
+/* (DEFMETHOD *MODEL SORT (FUN SILENT)
+     ((@ THIS _STORAGE SORT) FUN)
+     (UNLESS SILENT (TRIGGER THIS MODIFIED (@ THIS _STORAGE)))
+     THIS) */
 Model.prototype.sort = function (fun, silent) {
     this._storage.sort(fun);
     if (!silent) {
@@ -383,6 +637,57 @@ Model.prototype.sort = function (fun, silent) {
     };
     return this;
 };
+/* (DEFUN *VIEW (OPTIONS)
+     (LET ((FUN
+            (LAMBDA (MODEL)
+              (SETF (@ THIS MODEL) MODEL
+                    (@ THIS $EL) ($ <DIV>))
+              (WHEN OPTIONS
+                (WHEN (@ OPTIONS TAG-NAME)
+                  (SETF (@ THIS $EL) ($ (+ < (@ OPTIONS TAG-NAME) >))))
+                (WHEN (@ OPTIONS STYLE) ((@ THIS $EL CSS) (@ OPTIONS STYLE)))
+                (WHEN (@ OPTIONS MODEL)
+                  (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL))
+                ((@ THIS $EL ATTR) CLASS
+                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
+                (UNLESS (@ OPTIONS RENDER)
+                  (IF (@ OPTIONS RENDER-AUGMENTED)
+                      (SETF (@ THIS RENDER) (@ OPTIONS RENDER-AUGMENTED))
+                      (SETF (@ THIS RENDER) (LAMBDA () (@ THIS $EL)))))
+                (WHEN (@ OPTIONS RENDER)
+                  (UNLESS (@ OPTIONS RENDER-AUGMENTED)
+                    (PROGN
+                     (SETF (@ THIS RENDER)
+                             (LAMBDA ()
+                               ((@ ((@ THIS $EL CHILDREN)) DETACH))
+                               ((@ (@ OPTIONS ORIGINAL-RENDER) CALL) THIS)))
+                     (SETF (@ OPTIONS RENDER-AUGMENTED) (@ THIS RENDER))
+                     (SETF (@ OPTIONS ORIGINAL-RENDER) (@ OPTIONS RENDER))
+                     (DELETE (@ OPTIONS RENDER)))))
+                (UNLESS (@ OPTIONS INIT)
+                  (IF (@ OPTIONS INIT-AUGMENTED)
+                      (SETF (@ THIS INIT) (@ OPTIONS INIT-AUGMENTED))
+                      (SETF (@ THIS INIT) (LAMBDA () (THIS.RENDER)))))
+                (WHEN (@ OPTIONS INIT)
+                  (UNLESS (@ OPTIONS INIT-AUGMENTED)
+                    (PROGN
+                     (SETF (@ THIS INIT)
+                             (LAMBDA ()
+                               ((@ (@ OPTIONS ORIGINAL-INIT) APPLY) THIS
+                                ARGUMENTS)
+                               ((@ THIS RENDER))))
+                     (SETF (@ OPTIONS INIT-AUGMENTED) (@ THIS INIT))
+                     (SETF (@ OPTIONS ORIGINAL-INIT) (@ OPTIONS INIT))
+                     (DELETE (@ OPTIONS INIT)))))
+                (WHEN (@ OPTIONS EVENTS)
+                  (FOR-IN (EVENT (@ OPTIONS EVENTS))
+                          ((@ THIS $EL ON) EVENT
+                           ((GETPROP OPTIONS 'EVENTS EVENT 'BIND) THIS))))
+                ((@ MAGIC CALL) THIS OPTIONS ARGUMENTS)
+                THIS))))
+       (SETF (@ FUN PROTOTYPE) ((@ *OBJECT CREATE) (@ *MODEL PROTOTYPE)))
+       (SETF (@ FUN PROTOTYPE CONSTRUCTOR) *VIEW)
+       FUN)) */
 function View(options) {
     var fun = function (model) {
         this.model = model;
@@ -451,6 +756,7 @@ function View(options) {
     fun.prototype.constructor = View;
     return fun;
 };
+/* (EXPORT *MODEL *VIEW) */
 if (typeof module !== 'undefined') {
     module.exports.Model = Model;
 };
