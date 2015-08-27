@@ -6,6 +6,7 @@
   (setf (@ this target) target
         (@ this value) value))
 
+;; Magic up front.
 (defun magic (options args)
   (setf (@ this _parents) (array)
         (@ this _members) (create)
@@ -28,6 +29,7 @@
       ((@ this init apply) this args))
   this)
 
+;; Party in the back.
 (defun *Model (options)
   (let ((fun (lambda ()
                ((@ magic call) this options arguments))))
