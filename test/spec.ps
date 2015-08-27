@@ -63,6 +63,36 @@
                               "$el class name is not 'testing'")
               (done)))
 
+        (deftest "should automatically set the class name to type if className is not provided"
+            (let* ((cls (new (*View (create "type" "testing"))))
+                   (view (new (cls))))
+              (assert-equals  ((@ view $el prop) "class") "testing"
+                              "automatic class name is not 'testing'")
+              (done)))
+
+        (deftest "should automatically set the class name to className if it is provided"
+            (let* ((cls (new (*View (create "className" "testing"))))
+                   (view (new (cls))))
+              (assert-equals  ((@ view $el prop) "class") "testing"
+                              "automatic class name is not 'testing'")
+              (done)))
+
+        (deftest "should automatically set the class name when className is provided"
+            (let* ((cls (new (*View (create "type" "testing"
+                                            "className" "testing2"))))
+                   (view (new (cls))))
+              (assert-equals  ((@ view $el prop) "class") "testing2"
+                              "automatic class name is not 'testing2'")
+              (done)))
+
+        (deftest "should automatically append to className to type as the class name when className starts with a space"
+            (let* ((cls (new (*View (create "type" "testing"
+                                            "className" " testing2"))))
+                   (view (new (cls))))
+              (assert-equals  ((@ view $el prop) "class") "testing testing2"
+                              "automatic class name is not 'testing testing2'")
+              (done)))
+
         (deftest "should set the model member"
             (let* ((cls (new (*View)))
                    (view (new (cls 1))))
