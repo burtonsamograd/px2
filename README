@@ -328,8 +328,8 @@ View example
         // optional, sets default class of this.$el. If not provided
         // the class name is set the the value of type (above). If the
         // string starts with a space, the provided class name(s) will be
-        // appended to the value of type. ie: a value of className: "
-        // window"/ will result in a final class name of "PointsView window"
+        // appended to the value of type. ie: a value of className: " window"
+        // will result in a final class name of "PointsView window"
         // in this case.
         className: " window",
     
