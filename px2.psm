@@ -14,6 +14,13 @@
 (defmacro !? (self member value) ;; quiet set
   `((@ ,self set) ',member ,value true))
 
+;; Combined @ and ?/?? macros for some more brevity
+(defmacro ?@ (self member &rest at-values)
+  `(@ (? ,self ,member) ,@at-values))
+
+(defmacro ??@ (self member &rest at-values)
+  `(@ (?? ,self ,member) ,@at-values))
+
 ;; PX2 convenience macros for defining Models, Views, Controllers and
 ;; Containers
 (defmacro defmodel (name &rest options)
