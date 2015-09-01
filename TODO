@@ -1,3 +1,7 @@
+-- Modify current() to send change messages like set, as in after the current value has
+   changed passing the old-value as the event value.  This allows for
+   this.on('change:current', this.render) to work properly.
+
 -- add Model.requuest/ajax, which binds this properly in sucess: and
    failure:.  Write for both node (using request) and browser so that
    node package doesn't depend on jquery.
