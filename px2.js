@@ -487,21 +487,26 @@ Model.prototype.at = function (index) {
 };
 /* (DEFMETHOD *MODEL CURRENT (OBJORNUMBER SILENT)
      (IF (NOT (= OBJORNUMBER UNDEFINED))
-         (LET ((PREV-VALUE (THIS.AT THIS._CURRENT)))
+         (LET ((PREV-VALUE (THIS.AT THIS._CURRENT)) RETVAL)
+           (SETF RETVAL
+                   (IF (= (TYPEOF OBJORNUMBER) object)
+                       (THIS.AT
+                        (SETF THIS._CURRENT ((@ THIS INDEX-OF) OBJORNUMBER)))
+                       (THIS.AT (SETF THIS._CURRENT OBJORNUMBER))))
            (UNLESS SILENT
              (TRIGGER THIS CHANGE PREV-VALUE change:current PREV-VALUE))
-           (IF (= (TYPEOF OBJORNUMBER) object)
-               (THIS.AT (SETF THIS._CURRENT ((@ THIS INDEX-OF) OBJORNUMBER)))
-               (THIS.AT (SETF THIS._CURRENT OBJORNUMBER))))
+           RETVAL)
          (THIS.AT THIS._CURRENT))) */
 Model.prototype.current = function (objornumber, silent) {
     if (objornumber !== undefined) {
         var prevValue = this.at(this._current);
+        var retval = null;
+        retval = typeof objornumber === 'object' ? this.at(this._current = this.indexOf(objornumber)) : this.at(this._current = objornumber);
         if (!silent) {
             this.trigger('change', prevValue);
             this.trigger('change:current', prevValue);
         };
-        return typeof objornumber === 'object' ? this.at(this._current = this.indexOf(objornumber)) : this.at(this._current = objornumber);
+        return retval;
     } else {
         return this.at(this._current);
     };

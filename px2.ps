@@ -271,14 +271,17 @@
 
 (defmethod *Model current (objOrNumber silent)
   (if (not (= objOrNumber undefined))
-      (let ((prev-value (this.at this._current)))
+      (let ((prev-value (this.at this._current))
+            retval)
+        (setf retval 
+              (if (= (typeof objOrNumber) "object")
+                  (this.at (setf this._current ((@ this index-of) objOrNumber)))
+                (this.at (setf this._current objOrNumber))))
         (unless silent
           (trigger this
                    :change prev-value
                    "change:current" prev-value))
-        (if (= (typeof objOrNumber) "object")
-            (this.at (setf this._current ((@ this index-of) objOrNumber)))
-            (this.at (setf this._current objOrNumber))))
+        retval)
       (this.at this._current)))
 
 (defmethod *Model start (silent)
