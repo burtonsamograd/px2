@@ -1,3 +1,5 @@
+-- FIX MESSED UP MERGING AFTER GIT SUBMODULE FIASCO
+
 -- Modify current() to send change messages like set, as in after the current value has
    changed passing the old-value as the event value.  This allows for
    this.on('change:current', this.render) to work properly.
