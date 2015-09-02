@@ -6,6 +6,7 @@
   (setf (@ this target) target
         (@ this value) value))
 
+;; Magic up front.
 (defun magic (options args)
   (setf (@ this _parents) (array)
         (@ this _members) (create)
@@ -28,6 +29,7 @@
       ((@ this init apply) this args))
   this)
 
+;; Party in the back.
 (defun *Model (options)
   (let ((fun (lambda ()
                ((@ magic call) this options arguments))))
@@ -367,8 +369,15 @@
                     
                     (when (@ options model)
                       (setf (getprop this (@ options model)) model))
-                    
-                    ((@ this $el attr) :class (or (@ options class-name) (@ options type)))
+
+                    ((@ this $el attr) :class
+                     (if (and (@ options class-name) (@ options type))
+                         (if (= ((@ (@ options class-name) index-of) " ") 0)
+                             (+ (@ options type) (@ options class-name))
+                             (@ options class-name))
+                         (if (@ options class-name)
+                             (@ options class-name)
+                             (@ options type))))
                     
                     ;; Add a default render function if none was provided
                     (unless (@ options render)

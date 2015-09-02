@@ -654,7 +654,13 @@ Model.prototype.sort = function (fun, silent) {
                 (WHEN (@ OPTIONS MODEL)
                   (SETF (GETPROP THIS (@ OPTIONS MODEL)) MODEL))
                 ((@ THIS $EL ATTR) CLASS
-                 (OR (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE)))
+                 (IF (AND (@ OPTIONS CLASS-NAME) (@ OPTIONS TYPE))
+                     (IF (= ((@ (@ OPTIONS CLASS-NAME) INDEX-OF)  ) 0)
+                         (+ (@ OPTIONS TYPE) (@ OPTIONS CLASS-NAME))
+                         (@ OPTIONS CLASS-NAME))
+                     (IF (@ OPTIONS CLASS-NAME)
+                         (@ OPTIONS CLASS-NAME)
+                         (@ OPTIONS TYPE))))
                 (UNLESS (@ OPTIONS RENDER)
                   (IF (@ OPTIONS RENDER-AUGMENTED)
                       (SETF (@ THIS RENDER) (@ OPTIONS RENDER-AUGMENTED))
@@ -707,7 +713,7 @@ function View(options) {
             if (options.model) {
                 this[options.model] = model;
             };
-            this.$el.attr('class', options.className || options.type);
+            this.$el.attr('class', options.className && options.type ? (options.className.indexOf(' ') === 0 ? options.type + options.className : options.className) : (options.className ? options.className : options.type));
             if (!options.render) {
                 if (options.renderAugmented) {
                     this.render = options.renderAugmented;

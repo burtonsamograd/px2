@@ -325,8 +325,13 @@ View example
         // optional, sets default tag name of this.$el, else is "div"
         tagName: "span",  
     
-        // optional, sets default class of this.$el, else is the value of 'type'
-        className: "",
+        // optional, sets default class of this.$el. If not provided
+        // the class name is set the the value of type (above). If the
+        // string starts with a space, the provided class name(s) will be
+        // appended to the value of type. ie: a value of className: " window"
+        // will result in a final class name of "PointsView window"
+        // in this case.
+        className: " window",
     
         // optional, name for this.model. In this case, you could use
         // this.points to reference your model. The model is not
