@@ -1,5 +1,4 @@
-/* --eval (DEFCONSTANT +DEBUG+ T)
- *//* (LOAD macros.ps) */
+/* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
