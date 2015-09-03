@@ -240,6 +240,30 @@ Events
       set/add/push/etc, and target is the object that initiated the
       event.
 
+Serialization
+-------------
+
+       Serialization is working but some parts are experiemntal, so
+       don't expect it to work perfectly yet with all/complex
+       Models/Views.  Try it at first with simple objects that have
+       only members and storage and not complex actions (trigger that
+       set setf to something other than this) See test/serialize.js
+       for more info on what works and what doesn't..
+
+       this.serialize()
+
+          Return an object containing all members, storage and actions
+          that can be possibly passed to JSON.stringify() for storage.
+
+       this.load(object, load-actions)
+
+          Load 'object' into this.  'Object' should be something that
+          was returned from this.serialize(), probably after being
+          JSONified and back. If load actions is false, actions are
+          not loaded into this, hopefully keeping them from getting
+          trashed during the load (needs more testing and
+          experimentation).
+
 
 Example of defining and using a Model as an object and a container
 ------------------------------------------------------------------
