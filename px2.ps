@@ -22,8 +22,8 @@
   
   (setf this.length 0)
   (setf this._cursor 0)
-  
-  (setf this.options options)
+
+  (setf this._options options)
   
   (if (@ this init)
       ((@ this init apply) this args))
@@ -71,7 +71,7 @@
             )))))
 
 (defmethod *Model copy ()
-  (let* ((cls (*Model this.options))
+  (let* ((cls (*Model this._options))
          (obj (new (cls))))
     ;; copy members
     (for-in (prop this._members)
@@ -355,6 +355,126 @@
     (trigger this
              :modified (@ this _storage)))
   this)
+
+(defmethod *Model serialize ()
+  (let* ((members (create))
+         storage
+         (actions (array))
+         (options (create)))
+    ;; serialize members
+    (for-in (prop this._members)
+            (setf (getprop members prop)
+                  (let ((this-prop (getprop this '_members prop)))
+                    (if (*Modelp this-prop)
+                        ((@ (getprop this '_members prop) serialize))
+                      (if (or ((@ *Array is-array) this-prop)
+                              (= (typeof this-prop) 'object))
+                          ((@ *JSON* stringify) ((@ *JSON* stringify) this-prop))
+                        this-prop)))))
+    ;; serialize storage
+    (setf storage (this.map (lambda (e)
+                              (if (*Modelp e)
+                                  ((@ e serialize))
+                                e))))
+
+    ;; serialize options
+    (flet ((option-serialize
+            (thing)
+            (if (= (typeof thing) "function")
+                (array :function (+ "var x = " ((@ thing to-string)) ";x"))
+              (if (= (typeof thing) "object")
+                  (let ((obj (create)))
+                    (for-in (key thing)
+                            (setf (getprop obj key)
+                                  (option-serialize (getprop thing key))))
+                    (array :object obj))
+;;                (if (*Modelp thing) // TODO
+;;                    (throw (new (*Error "Serializing Models in options is not supported yet!")))
+                  (array :other thing)))))
+
+          (for-in (option this._options)
+                  (setf (getprop options option)
+                        (let ((thing (getprop this._options option)))
+                          (option-serialize thing)))))
+
+    ;; serialize actions
+    (for-in (action this._actions)
+            (let ((thing (getprop this._actions action)))
+              (dolist (x thing)
+                ((@ actions push)
+                 (create message (@ x message)
+                         fun  (+ "var x = " ((@ x fun to-string)) ";x")
+                         self (if (= (@ x self) this)
+                                  :this
+                                (if (*Modelp x)
+                                    ((@ x serialize))
+                                  x))
+                         once (@ x once))))))
+    
+
+    (create members members
+            storage storage
+            actions actions
+            options options)))
+
+(defmethod *Model load (obj load-actions)
+  (flet ((serializedp
+          (obj)
+          (not (or (= obj.members undefined)
+                   (= obj.storage undefined)
+                   (= obj.actions undefined)
+                   (= obj.options undefined))))
+
+         (deserialize-options
+          (options)
+          (for-in (option options)
+                  (let ((thing (getprop options option)))
+                    (setf (getprop options option)
+                          (case (aref thing 0)
+                                (:function ((@ (eval (aref thing 1)) bind) this))
+                                (:object (for-in (key thing)
+                                                 (setf (getprop thing key)
+                                                       (deserialize-options (getprop thing key))))
+                                         thing)
+                                (:other thing)))
+                         ))
+          options))
+
+        (let ((members (@ obj members))
+              (storage (@ obj storage))
+              (actions (@ obj actions))
+              (options (deserialize-options (@ obj options))))
+          (if (serializedp obj)
+            (for-in (member members)
+                    (let ((thing (getprop members member)))
+                      (if (serializedp thing)
+                          (let* ((model (new (new (*Model thing.options))))
+                                 (deserialized-thing ((@ model load) thing)))
+                            (if (getprop this member)
+                                ((getprop this member) deserialized-thing)
+                              ((@ this create) member  deserialized-thing)))
+                        (if (getprop this member)
+                            ((getprop this member) thing)
+                          ((@ this create) member thing))
+                        ))))
+          
+          (this.clear)
+          (dolist (thing storage)
+            (this.add 
+             (if (serializedp thing)
+                 (let* ((model (new (new (*Model thing.options))))
+                        (deserialized-thing ((@ model load) thing)))
+                   deserialized-thing)
+               thing) t))
+
+          ;; dserialize actions
+          (when load-actions
+            (dolist (action actions)
+              ((@ this on) action.message
+               ((@ (eval action.fun) bind) (when (= action.this :this)
+                                             this))
+               action.once)))
+          this)))
 
 (defun *View (options)
        (let ((fun (lambda (model)

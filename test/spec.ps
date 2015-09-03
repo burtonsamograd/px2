@@ -21,6 +21,7 @@
     ((require "./bubbling.js") *Model)
     ((require "./iterators.js") *Model)
     ((require "./copy.js") *Model)
+    ((require "./serialize.js") *Model)
   )
   
 (defsuite "View"
@@ -34,6 +35,7 @@
     ((require "./bubbling.js") *View)
     ((require "./iterators.js") *View)
     ((require "./copy.js") *View)
+    ((require "./serialize.js") *View)
 
     (defsuite "view"
         (deftest "should have a $el member"

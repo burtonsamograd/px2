@@ -36,5 +36,9 @@
     "jsdom": "^6.0.0",
     "mocha-text-cov": "^0.1.0",
     "sinon": "^1.15.4"
+  },
+  "dependencies": {
+    "mocha": "^2.3.0",
+    "mocha-text-cov": "^0.1.0"
   }
 }

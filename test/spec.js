@@ -19,7 +19,7 @@ var View = require('../px2.js').View;
     ((REQUIRE ./defaults.js) *MODEL) ((REQUIRE ./collections.js) *MODEL)
     ((REQUIRE ./events.js) *MODEL) ((REQUIRE ./parents.js) *MODEL)
     ((REQUIRE ./bubbling.js) *MODEL) ((REQUIRE ./iterators.js) *MODEL)
-    ((REQUIRE ./copy.js) *MODEL)) */
+    ((REQUIRE ./copy.js) *MODEL) ((REQUIRE ./serialize.js) *MODEL)) */
 describe('Class', function () {
     require('./methods.js')(Model);
     require('./constructor.js')(Model);
@@ -30,14 +30,15 @@ describe('Class', function () {
     require('./parents.js')(Model);
     require('./bubbling.js')(Model);
     require('./iterators.js')(Model);
-    return require('./copy.js')(Model);
+    require('./copy.js')(Model);
+    return require('./serialize.js')(Model);
 });
 /* (DEFSUITE View ((REQUIRE ./methods.js) *VIEW)
     ((REQUIRE ./constructor.js) *VIEW) ((REQUIRE ./members.js) *VIEW)
     ((REQUIRE ./defaults.js) *VIEW) ((REQUIRE ./collections.js) *VIEW)
     ((REQUIRE ./events.js) *VIEW) ((REQUIRE ./parents.js) *VIEW)
     ((REQUIRE ./bubbling.js) *VIEW) ((REQUIRE ./iterators.js) *VIEW)
-    ((REQUIRE ./copy.js) *VIEW)
+    ((REQUIRE ./copy.js) *VIEW) ((REQUIRE ./serialize.js) *VIEW)
     (DEFSUITE view
      (DEFTEST should have a $el member
       (LET* ((CLS (NEW (*VIEW))) (VIEW (NEW (CLS))))
@@ -137,6 +138,7 @@ describe('View', function () {
     require('./bubbling.js')(View);
     require('./iterators.js')(View);
     require('./copy.js')(View);
+    require('./serialize.js')(View);
     return describe('view', function () {
         it('should have a $el member', function (done) {
             var cls = new View();

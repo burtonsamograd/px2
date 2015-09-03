@@ -1,4 +1,5 @@
-/* (LOAD macros.ps) */
+/* --eval (DEFCONSTANT +DEBUG+ T)
+ *//* (LOAD macros.ps) */
 Array.prototype.remove = function (thing) {
     var i = 0;
     for (var x = null, _js_idx1 = 0; _js_idx1 < this.length; _js_idx1 += 1) {
@@ -30,7 +31,7 @@ function Event(target, value) {
      (FOR-IN (K OPTIONS) (SETF (GETPROP THIS K) (GETPROP OPTIONS K)))
      (SETF THIS.LENGTH 0)
      (SETF THIS._CURSOR 0)
-     (SETF THIS.OPTIONS OPTIONS)
+     (SETF THIS._OPTIONS OPTIONS)
      (IF (@ THIS INIT)
          ((@ THIS INIT APPLY) THIS ARGS))
      THIS) */
@@ -49,7 +50,7 @@ function magic(options, args) {
     };
     this.length = 0;
     this._cursor = 0;
-    this.options = options;
+    this._options = options;
     if (this.init) {
         this.init.apply(this, args);
     };
@@ -109,7 +110,7 @@ function addParent(child, parent, name) {
     };
 };
 /* (DEFMETHOD *MODEL COPY ()
-     (LET* ((CLS (*MODEL THIS.OPTIONS)) (OBJ (NEW (CLS))))
+     (LET* ((CLS (*MODEL THIS._OPTIONS)) (OBJ (NEW (CLS))))
        (FOR-IN (PROP THIS._MEMBERS) (OBJ.DESTROY PROP T)
                (LET ((THIS-PROP (GETPROP THIS '_MEMBERS PROP)))
                  (IF (*MODELP THIS-PROP)
@@ -142,7 +143,7 @@ function addParent(child, parent, name) {
          ((@ NEW-STORAGE FOR-EACH) (LAMBDA (E) (OBJ.PUSH E T))))
        OBJ)) */
 Model.prototype.copy = function () {
-    var cls = Model(this.options);
+    var cls = Model(this._options);
     var obj = new cls();
     for (var prop in this._members) {
         obj.destroy(prop, true);
@@ -639,6 +640,216 @@ Model.prototype.sort = function (fun, silent) {
     this._storage.sort(fun);
     if (!silent) {
         this.trigger('modified', this._storage);
+    };
+    return this;
+};
+/* (DEFMETHOD *MODEL SERIALIZE ()
+     (LET* ((MEMBERS (CREATE)) STORAGE (ACTIONS (ARRAY)) (OPTIONS (CREATE)))
+       (FOR-IN (PROP THIS._MEMBERS)
+               (SETF (GETPROP MEMBERS PROP)
+                       (LET ((THIS-PROP (GETPROP THIS '_MEMBERS PROP)))
+                         (IF (*MODELP THIS-PROP)
+                             ((@ (GETPROP THIS '_MEMBERS PROP) SERIALIZE))
+                             (IF (OR ((@ *ARRAY IS-ARRAY) THIS-PROP)
+                                     (= (TYPEOF THIS-PROP) 'OBJECT))
+                                 ((@ *JSON* STRINGIFY)
+                                  ((@ *JSON* STRINGIFY) THIS-PROP))
+                                 THIS-PROP)))))
+       (SETF STORAGE
+               (THIS.MAP
+                (LAMBDA (E)
+                  (IF (*MODELP E)
+                      ((@ E SERIALIZE))
+                      E))))
+       (FLET ((OPTION-SERIALIZE (THING)
+                (IF (= (TYPEOF THING) function)
+                    (ARRAY FUNCTION (+ var x =  ((@ THING TO-STRING)) ;x))
+                    (IF (= (TYPEOF THING) object)
+                        (LET ((OBJ (CREATE)))
+                          (FOR-IN (KEY THING)
+                                  (SETF (GETPROP OBJ KEY)
+                                          (OPTION-SERIALIZE
+                                           (GETPROP THING KEY))))
+                          (ARRAY OBJECT OBJ))
+                        (ARRAY OTHER THING)))))
+         (FOR-IN (OPTION THIS._OPTIONS)
+                 (SETF (GETPROP OPTIONS OPTION)
+                         (LET ((THING (GETPROP THIS._OPTIONS OPTION)))
+                           (OPTION-SERIALIZE THING)))))
+       (FOR-IN (ACTION THIS._ACTIONS)
+               (LET ((THING (GETPROP THIS._ACTIONS ACTION)))
+                 (DOLIST (X THING)
+                   ((@ ACTIONS PUSH)
+                    (CREATE MESSAGE (@ X MESSAGE) FUN
+                     (+ var x =  ((@ X FUN TO-STRING)) ;x) SELF
+                     (IF (= (@ X SELF) THIS)
+                         THIS
+                         (IF (*MODELP X)
+                             ((@ X SERIALIZE))
+                             X))
+                     ONCE (@ X ONCE))))))
+       (CREATE MEMBERS MEMBERS STORAGE STORAGE ACTIONS ACTIONS OPTIONS
+        OPTIONS))) */
+Model.prototype.serialize = function () {
+    var thisProp;
+    var thing;
+    var members = {  };
+    var storage = null;
+    var actions = [];
+    var options = {  };
+    for (var prop in this._members) {
+        members[prop] = (thisProp = this._members[prop], Modelp(thisProp) ? this._members[prop].serialize() : (Array.isArray(thisProp) || typeof thisProp === 'object' ? JSON.stringify(JSON.stringify(thisProp)) : thisProp));
+    };
+    storage = this.map(function (e) {
+        return Modelp(e) ? e.serialize() : e;
+    });
+    var optionSerialize = function (thing) {
+        if (typeof thing === 'function') {
+            return ['function', 'var x = ' + thing.toString() + ';x'];
+        } else {
+            if (typeof thing === 'object') {
+                var obj = {  };
+                for (var key in thing) {
+                    obj[key] = optionSerialize(thing[key]);
+                };
+                return ['object', obj];
+            } else {
+                return ['other', thing];
+            };
+        };
+    };
+    for (var option in this._options) {
+        options[option] = (thing = this._options[option], optionSerialize(thing));
+    };
+    for (var action in this._actions) {
+        var thing25 = this._actions[action];
+        for (var x = null, _js_idx26 = 0; _js_idx26 < thing25.length; _js_idx26 += 1) {
+            x = thing25[_js_idx26];
+            actions.push({ message : x.message,
+                           fun : 'var x = ' + x.fun.toString() + ';x',
+                           self : x.self === this ? 'this' : (Modelp(x) ? x.serialize() : x),
+                           once : x.once
+                         });
+        };
+    };
+    return { members : members,
+             storage : storage,
+             actions : actions,
+             options : options
+           };
+};
+/* (DEFMETHOD *MODEL LOAD (OBJ LOAD-ACTIONS)
+     (FLET ((SERIALIZEDP (OBJ)
+              (NOT
+               (OR (= OBJ.MEMBERS UNDEFINED) (= OBJ.STORAGE UNDEFINED)
+                   (= OBJ.ACTIONS UNDEFINED) (= OBJ.OPTIONS UNDEFINED))))
+            (DESERIALIZE-OPTIONS (OPTIONS)
+              (FOR-IN (OPTION OPTIONS)
+                      (LET ((THING (GETPROP OPTIONS OPTION)))
+                        (SETF (GETPROP OPTIONS OPTION)
+                                (CASE (AREF THING 0)
+                                  (FUNCTION
+                                   ((@ (EVAL (AREF THING 1)) BIND) THIS))
+                                  (OBJECT
+                                   (FOR-IN (KEY THING)
+                                           (SETF (GETPROP THING KEY)
+                                                   (DESERIALIZE-OPTIONS
+                                                    (GETPROP THING KEY))))
+                                   THING)
+                                  (OTHER THING)))))
+              OPTIONS))
+       (LET ((MEMBERS (@ OBJ MEMBERS))
+             (STORAGE (@ OBJ STORAGE))
+             (ACTIONS (@ OBJ ACTIONS))
+             (OPTIONS (DESERIALIZE-OPTIONS (@ OBJ OPTIONS))))
+         (IF (SERIALIZEDP OBJ)
+             (FOR-IN (MEMBER MEMBERS)
+                     (LET ((THING (GETPROP MEMBERS MEMBER)))
+                       (IF (SERIALIZEDP THING)
+                           (LET* ((MODEL (NEW (NEW (*MODEL THING.OPTIONS))))
+                                  (DESERIALIZED-THING ((@ MODEL LOAD) THING)))
+                             (IF (GETPROP THIS MEMBER)
+                                 ((GETPROP THIS MEMBER) DESERIALIZED-THING)
+                                 ((@ THIS CREATE) MEMBER DESERIALIZED-THING)))
+                           (IF (GETPROP THIS MEMBER)
+                               ((GETPROP THIS MEMBER) THING)
+                               ((@ THIS CREATE) MEMBER THING))))))
+         (THIS.CLEAR)
+         (DOLIST (THING STORAGE)
+           (THIS.ADD
+            (IF (SERIALIZEDP THING)
+                (LET* ((MODEL (NEW (NEW (*MODEL THING.OPTIONS))))
+                       (DESERIALIZED-THING ((@ MODEL LOAD) THING)))
+                  DESERIALIZED-THING)
+                THING)
+            T))
+         (WHEN LOAD-ACTIONS
+           (DOLIST (ACTION ACTIONS)
+             ((@ THIS ON) ACTION.MESSAGE
+              ((@ (EVAL ACTION.FUN) BIND) (WHEN (= ACTION.THIS THIS) THIS))
+              ACTION.ONCE)))
+         THIS))) */
+Model.prototype.load = function (obj, loadActions) {
+    var model30;
+    var deserializedThing31;
+    var serializedp = function (obj) {
+        return !(obj.members === undefined || obj.storage === undefined || obj.actions === undefined || obj.options === undefined);
+    };
+    var deserializeOptions = function (options) {
+        for (var option in options) {
+            with ({ thing : null }) {
+                var thing = options[option];
+                options[option] = (function () {
+                    switch (thing[0]) {
+                    case 'function':
+                        return eval(thing[1]).bind(this);
+                    case 'object':
+                        for (var key in thing) {
+                            thing[key] = deserializeOptions(thing[key]);
+                        };
+                        return thing;
+                    case 'other':
+                        return thing;
+                    };
+                })();
+            };
+        };
+        return options;
+    };
+    var members25 = obj.members;
+    var storage26 = obj.storage;
+    var actions27 = obj.actions;
+    var options28 = deserializeOptions(obj.options);
+    if (serializedp(obj)) {
+        for (var member in members25) {
+            var thing = members25[member];
+            if (serializedp(thing)) {
+                var model = new (new Model(thing.options));
+                var deserializedThing = model.load(thing);
+                if (this[member]) {
+                    this[member](deserializedThing);
+                } else {
+                    this.create(member, deserializedThing);
+                };
+            } else {
+                if (this[member]) {
+                    this[member](thing);
+                } else {
+                    this.create(member, thing);
+                };
+            };
+        };
+    };
+    this.clear();
+    for (var thing = null, _js_idx29 = 0; _js_idx29 < storage26.length; _js_idx29 += 1) {
+        thing = storage26[_js_idx29];
+        this.add(serializedp(thing) ? (model30 = new (new Model(thing.options)), (deserializedThing31 = model30.load(thing), deserializedThing31)) : thing, true);
+    };
+    if (loadActions) {
+        for (var action = null, _js_idx30 = 0; _js_idx30 < actions27.length; _js_idx30 += 1) {
+            action = actions27[_js_idx30];
+            this.on(action.message, eval(action.fun).bind(action.this === 'this' ? this : null), action.once);
+        };
     };
     return this;
 };
