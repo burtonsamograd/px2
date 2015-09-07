@@ -1,4 +1,6 @@
--- add Model.serialize and Model.load
+--   ;; TODO: make px2 automatically define predicates
+  (defun *Menup (thing)
+    (and (*Modelp thing) (= thing.type '*Menu)))
 
 -- add Model.requuest/ajax, which binds this properly in sucess: and
    failure:.  Write for both node (using request) and browser so that

@@ -40,7 +40,8 @@
     fun))
 
 (defun *Modelp (value) ;; TODO: this could be better written/more accurate, faster
-  (and (= (typeof value) :object)
+  (and value ;; handle null
+       (= (typeof value) :object)
        ((@ *Array is-array) (@ value _storage))
        ((@ *Array is-array) (@ value _parents))))
 

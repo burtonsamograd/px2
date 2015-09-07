@@ -69,10 +69,11 @@ function Model(options) {
     return fun;
 };
 /* (DEFUN *MODELP (VALUE)
-     (AND (= (TYPEOF VALUE) OBJECT) ((@ *ARRAY IS-ARRAY) (@ VALUE _STORAGE))
+     (AND VALUE (= (TYPEOF VALUE) OBJECT)
+          ((@ *ARRAY IS-ARRAY) (@ VALUE _STORAGE))
           ((@ *ARRAY IS-ARRAY) (@ VALUE _PARENTS)))) */
 function Modelp(value) {
-    return typeof value === 'object' && Array.isArray(value._storage) && Array.isArray(value._parents);
+    return value && typeof value === 'object' && Array.isArray(value._storage) && Array.isArray(value._parents);
 };
 /* (DEFUN ADD-PARENT (CHILD PARENT NAME)
      (WHEN (*MODELP CHILD)
